@@ -35,9 +35,9 @@ class LoginAPIView(APIView):
             # Authentication failed
             return Response({'success': False, 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         
-# class ProfileAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
+class ProfileAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-#     def get(self, request):
-#         serializer = UserSerializer(request.user)
-#         return Response(serializer.data)
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
