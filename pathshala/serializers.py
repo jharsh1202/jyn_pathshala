@@ -17,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email', 'password', 'profile')
         extra_kwargs = {'password': {'write_only': True}}
 
+    @transaction.atomic
     def create(self, validated_data):
         profile_data = validated_data.pop('profile')
         user = User.objects.create_user(
