@@ -1,12 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile
+from django.db import transaction
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ('first_name', 'middle_name', 'last_name', 'role', 'dob', 'phone', 'email')
+        exclude = ('user', )
 
 
 class UserSerializer(serializers.ModelSerializer):
