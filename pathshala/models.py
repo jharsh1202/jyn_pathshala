@@ -10,6 +10,7 @@ class UserProfile(models.Model):
         ('Co-Mentor', 'Co-Mentor'),
         ('Volunteer', 'Volunteer'),
         ('Member', 'Member'),
+        ('Student', 'Student'),
     ]
     BLOOD_GROUP_CHOICES = [
         ('A+', 'A+'),
@@ -44,6 +45,19 @@ class UserProfile(models.Model):
 
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} {self.phone}"
+
+
+class Location(models.Model):
+    street_address = models.CharField(max_length=200)
+    city = models.CharField(max_length=200)
+    state = models.CharField(max_length=200)
+    country = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.street_address} {self.city} {self.state}"
+
 
 class Bhaag(models.Model):
     BHAG_CHOICES = (
@@ -56,37 +70,80 @@ class Bhaag(models.Model):
         ('Bhag 5 Prelims', 'Bhag 5 Prelims'),
         ('Bhag 6 Prelims', 'Bhag 6 Prelims'),
     )
+
+    name = models.CharField(max_length=50, choices=BHAG_CHOICES)
+    book = models.URLField()
+
+    def __str__(self):
+        return f"{self.name}"
+    
+
+class BhaagCategory(models.Model):
     SESSION_CATEGORIES = [
         ('offline', 'offline'),
         ('online', 'online'),
     ]
-    name = models.CharField(max_length=50, unique=True, choices=BHAG_CHOICES)
-    book = models.URLField()
+    bhaag = models.ForeignKey(Bhaag, on_delete=models.CASCADE)
     category = models.CharField(max_length=20, choices=SESSION_CATEGORIES)
+
+    def __str__(self):
+        return f"{self.bhaag.name} {self.category}"
+
+
+
+class BhaagClass(models.Model):
+    bhaag_category = models.ForeignKey(BhaagCategory, on_delete=models.CASCADE)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='location')
+
+    def __str__(self):
+        return f"{self.bhaag_category.bhaag.name} {self.bhaag_category.category} {self.location}"
+
 
 class Student(models.Model):
     profile = models.OneToOneField(UserProfile, on_delete=models.PROTECT, related_name='student')
-    bhaag = models.ForeignKey(Bhaag, on_delete=models.PROTECT)
+    bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.profile.first_name} {self.profile.phone}"
 
 
 class Mentor(models.Model):
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='mentor')
-    bhaag = models.ForeignKey(Bhaag, on_delete=models.PROTECT)
+    bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return f"{self.profile.first_name} {self.bhaag_class.bhaag_category.bhaag.name}"
 
 
 class Parent(models.Model):
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='parent')
     children = models.ManyToManyField(Student, related_name='parents')
 
+    def __str__(self):
+        return f"{self.profile.first_name} {self.profile.phone}"
+
+
 class Volunteer(models.Model):
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='volunteer')
-    
+
+    def __str__(self):
+        return f"{self.profile.first_name} {self.profile.phone}"
+
 
 class Session(models.Model):
     date = models.DateField()
-    bhaag = models.ForeignKey(Bhaag, on_delete=models.CASCADE)
+    bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT)
     day_mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE, related_name='day_mentor')
 
+    def __str__(self):
+        return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.date} {self.day_mentor}"
+
+
 class Attendnace(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='student')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='session')
     status = models.BooleanField()
+
+    def __str__(self):
+        return f"{self.student.profile.first_name} {self.session.bhaag_class.bhaag_category.bhaag.name} {self.status}"
+
