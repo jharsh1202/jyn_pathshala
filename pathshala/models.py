@@ -29,6 +29,7 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     dob = models.DateField()
     phone = models.CharField(max_length=15, unique=True)
+    alias = models.CharField(max_length=15, unique=True, blank=True, null=True)
     email = models.EmailField(unique=True, blank=True, null=True)
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUP_CHOICES)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
@@ -101,7 +102,7 @@ class BhaagClass(models.Model):
 
 class Student(models.Model):
     profile = models.OneToOneField(UserProfile, on_delete=models.PROTECT, related_name='student')
-    bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT)
+    bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT, related_name='bhaag_class')
 
     def __str__(self):
         return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.profile.first_name} {self.profile.phone}"
@@ -139,7 +140,7 @@ class Session(models.Model):
         return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.date} {self.day_mentor}"
 
 
-class Attendnace(models.Model):
+class Attendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='student')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='session')
     status = models.BooleanField()
