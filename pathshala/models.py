@@ -1,17 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.utils import timezone
+from .mixins import RegistrationRoleMixin
 import os
 
 class UserProfile(models.Model):
-    ROLE_CHOICES = [
-        ('Admin', 'Admin'),
-        ('Mentor', 'Mentor'),
-        ('Co-Mentor', 'Co-Mentor'),
-        ('Volunteer', 'Volunteer'),
-        ('Member', 'Member'),
-        ('Student', 'Student'),
-    ]
+
     BLOOD_GROUP_CHOICES = [
         ('A+', 'A+'),
         ('A-', 'A-'),
@@ -26,10 +20,10 @@ class UserProfile(models.Model):
     first_name = models.CharField(max_length=30)
     middle_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    groups = models.ManyToManyField(Group)
     dob = models.DateField()
-    phone = models.CharField(max_length=15, unique=True)
-    alias = models.CharField(max_length=15, unique=True, blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True) 
+    alias = models.CharField(max_length=15, unique=True)
     email = models.EmailField(unique=True, blank=True, null=True)
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUP_CHOICES)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
@@ -100,7 +94,8 @@ class BhaagClass(models.Model):
         return f"{self.bhaag_category.bhaag.name} {self.bhaag_category.category} {self.location}"
 
 
-class Student(models.Model):
+class Student(RegistrationRoleMixin, models.Model):
+    group_name = "Student"
     profile = models.OneToOneField(UserProfile, on_delete=models.PROTECT, related_name='student')
     bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT, related_name='bhaag_class')
 
@@ -108,15 +103,19 @@ class Student(models.Model):
         return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.profile.first_name} {self.profile.phone}"
 
 
-class Mentor(models.Model):
+class Mentor(RegistrationRoleMixin, models.Model):
+    group_name = "Mentor"
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='mentor')
     bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.profile.first_name} {self.bhaag_class.bhaag_category.bhaag.name}"
 
+    class Meta:
+        unique_together = ["profile", "bhaag_class"]
 
-class Parent(models.Model):
+class Parent(RegistrationRoleMixin, models.Model):
+    group_name = "Parent"
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='parent')
     children = models.ManyToManyField(Student, related_name='parents')
 
@@ -124,7 +123,8 @@ class Parent(models.Model):
         return f"{self.profile.first_name} {self.profile.phone}"
 
 
-class Volunteer(models.Model):
+class Volunteer(RegistrationRoleMixin, models.Model):
+    group_name = "Volunteer"
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='volunteer')
 
     def __str__(self):

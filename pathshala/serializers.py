@@ -71,10 +71,13 @@ class UserSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         profile_data = validated_data.pop('profile')
+        group = profile_data.pop('groups')
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email', ''),
             password=validated_data['password']
         )
-        UserProfile.objects.create(user=user, **profile_data)
+
+        user_profile = UserProfile.objects.create(user=user, **profile_data)
+        user_profile.groups.set(group)
         return user

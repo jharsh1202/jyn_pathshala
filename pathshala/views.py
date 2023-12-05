@@ -63,6 +63,7 @@ class RoleProfileAPIView(APIView):
             from .models import BhaagClass, BhaagCategory, Location
             bhaag_class=BhaagClass.objects.get(bhaag_category=BhaagCategory.objects.get(bhaag_id=data.get('bhaag_id'), category=data.get('bhaag_category')), location=Location.objects.get(id=data.get('location_id')))
             mentor=Mentor.objects.create(profile=user_profile, bhaag_class=bhaag_class) #TODO
+            mentor.save() 
         return Response("profile created successfully")
 class StudentsAPIView(APIView):
     permission_classes = [IsAuthenticated]
