@@ -15,7 +15,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        exclude = ()
+        exclude = ('user', )
 
 
 class BhaagSerializer(serializers.ModelSerializer):
@@ -78,7 +78,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        profile_data = validated_data.pop('profile')
+        profile_data = validated_data.get('profile')
         group = profile_data.pop('groups')
         user = User.objects.create_user(
             username=validated_data['username'],
