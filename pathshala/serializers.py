@@ -1,13 +1,21 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Student, BhaagClass, Bhaag, BhaagCategory, Location
+from .models import UserProfile, Student, BhaagClass, Bhaag, BhaagCategory, Location, Group
 from django.db import transaction
 
 
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'name']
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
+    groups = GroupSerializer(many=True)
+
     class Meta:
         model = UserProfile
-        exclude = ('user', )
+        exclude = ()
 
 
 class BhaagSerializer(serializers.ModelSerializer):
