@@ -16,7 +16,12 @@ class RegistrationAPIView(APIView):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'message': 'Registration successful'}, status=status.HTTP_201_CREATED)
+            response={
+                "status": "success",
+                "message": "Registration successful",
+                "data": {},
+            }
+            return Response(response, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -33,18 +38,40 @@ class LoginAPIView(APIView):
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
-
-            return Response({'success': True, 'access_token': access_token, 'refresh_token': refresh_token})
+            response={
+                "status": "success",
+                "message": "Login successful",
+                "data": {'access_token': access_token, 'refresh_token': refresh_token},
+            }
+            return Response(response)
         else:
             # Authentication failed
-            return Response({'success': False, 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            response={
+                "status": "error",
+                "message": "",
+                "data": {},
+                "error": {
+                    "code": "401",
+                    "message": "Invalid credentials",
+                    "details": "Please Try again."
+                }
+            }
+            return Response(response, status=status.HTTP_401_UNAUTHORIZED)
         
 class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+        response={
+            "status": "success",
+            "message": "profile fetch successful",
+            "data": serializer.data
+        }
+        return Response(response, status=status.HTTP_200_OK)
+
+
+
 
 
 class RoleProfileAPIView(APIView):
@@ -63,8 +90,14 @@ class RoleProfileAPIView(APIView):
             from .models import BhaagClass, BhaagCategory, Location
             bhaag_class=BhaagClass.objects.get(bhaag_category=BhaagCategory.objects.get(bhaag_id=data.get('bhaag_id'), category=data.get('bhaag_category')), location=Location.objects.get(id=data.get('location_id')))
             mentor=Mentor.objects.create(profile=user_profile, bhaag_class=bhaag_class) #TODO
-            mentor.save() 
-        return Response("profile created successfully")
+        response={
+            "status": "success",
+            "message": "profile created successful",
+            "data": {},
+        }
+        return Response(response, status=status.HTTP_200_OK)
+
+
 class StudentsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -72,7 +105,12 @@ class StudentsAPIView(APIView):
         mentor=Mentor.objects.get(profile=request.user.profile)
         students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
         serializer = MentorStudentSerializer(students, many=True)
-        return Response(serializer.data)
+        response={
+            "status": "success",
+            "message": "students fetch successful",
+            "data": serializer.data,
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 
 # class LocationAPIView(APIView):
