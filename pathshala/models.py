@@ -23,9 +23,9 @@ class UserProfile(models.Model):
     groups = models.ManyToManyField(Group)
     dob = models.DateField()
     phone = models.CharField(max_length=15, blank=True, null=True) 
-    alias = models.CharField(max_length=15, unique=True)
+    alias = models.CharField(max_length=15, blank=True, null=True, unique=True)
     email = models.EmailField(unique=True, blank=True, null=True)
-    blood_group = models.CharField(max_length=5, choices=BLOOD_GROUP_CHOICES)
+    blood_group = models.CharField(max_length=5, blank=True, null=True, choices=BLOOD_GROUP_CHOICES)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
     date_of_joining = models.DateField(null=True, blank=True)
 

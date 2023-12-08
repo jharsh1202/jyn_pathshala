@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 class RegistrationRoleMixin: 
-
+    
     def __init__(self, *args, **kwargs):
         if not hasattr(self.__class__, 'group_name') or getattr(self.__class__, 'group_name') is None:
             raise AttributeError(f"Class variable 'group_name' not defined or is None in {self.__class__}")

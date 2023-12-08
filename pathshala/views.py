@@ -22,6 +22,16 @@ class RegistrationAPIView(APIView):
                 "data": {},
             }
             return Response(response, status=status.HTTP_201_CREATED)
+        response={
+                "status": "error",
+                "message": "",
+                "data": {},
+                "error": {
+                    "code": "400",
+                    "message": "Bad Request",
+                    "details": serializer.errors
+                }
+            }
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -84,12 +94,13 @@ class RoleProfileAPIView(APIView):
 
         if user_profile.role == 'Student':
             student=Student.objects.create(profile=user_profile)
-            student.bhaag_class_id = data.get('bhaag_class') #TODO
-            student.save() #TODO Trigger for review
+            student.bhaag_class_id = data.get('bhaag_class') 
+            student.save() 
         if user_profile.role == 'Mentor':
             from .models import BhaagClass, BhaagCategory, Location
             bhaag_class=BhaagClass.objects.get(bhaag_category=BhaagCategory.objects.get(bhaag_id=data.get('bhaag_id'), category=data.get('bhaag_category')), location=Location.objects.get(id=data.get('location_id')))
             mentor=Mentor.objects.create(profile=user_profile, bhaag_class=bhaag_class) #TODO
+            mentor.save()
         response={
             "status": "success",
             "message": "profile created successful",
