@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer
+from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action 
@@ -32,7 +32,7 @@ class RegistrationAPIView(APIView):
                     "details": serializer.errors
                 }
             }
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginAPIView(APIView):
@@ -81,6 +81,24 @@ class ProfileAPIView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
+class BhaagListView(APIView):
+    def get(self, request, *args, **kwargs):
+        from .models import Bhaag
+        if request.GET.get('bhaag_id'):
+            bhaag_objects = Bhaag.objects.get(id=request.GET.get('bhaag_id'))
+            serializer = BhaagSerializer(bhaag_objects)
+        else:
+            bhaag_objects = Bhaag.objects.all()
+            serializer = BhaagSerializer(bhaag_objects, many=True)
+
+        response={
+            "status": "success",
+            "message": "Bhaag fetch successful",
+            "data": serializer.data 
+        }
+        return Response(response, status=status.HTTP_200_OK)
+
+
 
 
 
@@ -115,6 +133,17 @@ class StudentsAPIView(APIView):
     def get(self, request):
         mentor=Mentor.objects.get(profile=request.user.profile)
         students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
+        from .models import BhaagClass, BhaagCategory, Bhaag, Location
+        # mentor=Mentor.objects.get(profile=request.user.profile)
+        # students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
+        bhaag_class=BhaagClass.objects.get(
+            category=BhaagCategory.objects.get(
+                bhaag=Bhaag.objects.get(id=request.GET.get('bhaag_id')),
+                category=request.GET.get('bhaag_category'),
+            ),
+            location=Location.objects.get(id=request.GET.get('location_id'))
+        )
+        students=Student.objects.filter(bhaag_class=bhaag_class)
         serializer = MentorStudentSerializer(students, many=True)
         response={
             "status": "success",

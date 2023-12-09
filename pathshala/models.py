@@ -85,7 +85,6 @@ class BhaagCategory(models.Model):
         return f"{self.bhaag.name} {self.category}"
 
 
-
 class BhaagClass(models.Model):
     bhaag_category = models.ForeignKey(BhaagCategory, on_delete=models.CASCADE)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='location')

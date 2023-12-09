@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  django:
+    build: .
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000" # && gunicorn jyn_pathshala.wsgi:application -b 0.0.0.0:8000
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - mysql
+    networks:
+      - backend
+
+  celery:
+    build: .
+    command: celery -A jyn_pathshala worker -l info
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  redis:
+    image: "redis:latest"
+    networks:
+      - backend
+
+  mysql:
+    image: "mysql:latest"
+    environment:
+      MYSQL_DATABASE: db_jain_youth_noida
+      # MYSQL_USER: root
+      MYSQL_PASSWORD: JainYouthNoida@2012
+      MYSQL_ROOT_PASSWORD: JainYouthNoida@2012
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
