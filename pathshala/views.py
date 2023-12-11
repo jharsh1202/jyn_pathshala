@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer
+from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action 
@@ -97,7 +97,24 @@ class BhaagListView(APIView):
             "data": serializer.data 
         }
         return Response(response, status=status.HTTP_200_OK)
+    
 
+class SessionAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        from .models import Session
+        
+        if session_date:=request.GET.get('date'):
+            session_objects = Session.objects.filter(date=session_date)
+        else:
+            session_objects = Session.objects.all()
+        serializer = SessionSerializer(session_objects, many=True)
+
+        response={
+            "status": "success",
+            "message": "Session fetch successful",
+            "data": serializer.data 
+        }
+        return Response(response, status=status.HTTP_200_OK)
 
 
 
@@ -134,15 +151,19 @@ class StudentsAPIView(APIView):
         mentor=Mentor.objects.get(profile=request.user.profile)
         students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
         from .models import BhaagClass, BhaagCategory, Bhaag, Location
-        # mentor=Mentor.objects.get(profile=request.user.profile)
-        # students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
-        bhaag_class=BhaagClass.objects.get(
-            category=BhaagCategory.objects.get(
-                bhaag=Bhaag.objects.get(id=request.GET.get('bhaag_id')),
-                category=request.GET.get('bhaag_category'),
-            ),
-            location=Location.objects.get(id=request.GET.get('location_id'))
-        )
+        if bhaag_class_id:=request.GET.get('bhaag_class_id'):
+            bhaag_class=BhaagClass.objects.get(id=bhaag_class_id)
+        elif request.GET.get('bhaag_id') or request.GET.get('bhaag_category') or request.GET.get('location_id'):
+            bhaag_class=BhaagClass.objects.get(
+                category=BhaagCategory.objects.get(
+                    bhaag=Bhaag.objects.get(id=request.GET.get('bhaag_id')),
+                    category=request.GET.get('bhaag_category'),
+                ),
+                location=Location.objects.get(id=request.GET.get('location_id'))
+            )
+        else:
+            mentor=Mentor.objects.get(profile=request.user.profile)
+            students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
         students=Student.objects.filter(bhaag_class=bhaag_class)
         serializer = MentorStudentSerializer(students, many=True)
         response={
@@ -151,6 +172,42 @@ class StudentsAPIView(APIView):
             "data": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
+
+
+class AttendanceAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from .models import Session, Attendance
+        request_data = request.data
+        students=Student.objects.filter(id__in=request_data.get('students_ids', []))
+        session=Session.objects.get(id=request_data.get('session_id'))
+
+        if not students or not session:
+            response={
+                "status": "error",
+                "message": "bad request",
+                "data": f"{students} {session}",
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with transaction.atomic():
+                for student in students:
+                    Attendance.objects.create(student=student, session=session, status=True)
+            response={
+                "status": "success",
+                "message": "attendance marked successfully",
+                "data": "",
+            }
+            return Response(response)
+        except Exception as e:
+            response={
+                "status": "error",
+                "message": "",
+                "data": e
+            }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 # class LocationAPIView(APIView):

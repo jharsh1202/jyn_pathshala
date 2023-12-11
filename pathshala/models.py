@@ -66,7 +66,7 @@ class Bhaag(models.Model):
         ('Bhag 6 Prelims', 'Bhag 6 Prelims'),
     )
 
-    name = models.CharField(max_length=50, choices=BHAG_CHOICES)
+    name = models.CharField(max_length=50, choices=BHAG_CHOICES, unique=True)
     book = models.URLField()
 
     def __str__(self):

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Student, BhaagClass, Bhaag, BhaagCategory, Location, Group
+from .models import UserProfile, Student, BhaagClass, Bhaag, BhaagCategory, Location, Group, Session, Attendance
 from django.db import transaction
 
 
@@ -42,7 +42,7 @@ class BhaagClassSerializer(serializers.ModelSerializer):
     location = LocationSerializer()
     class Meta:
         model = BhaagClass
-        exclude = ('id', )
+        exclude = ()
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -65,6 +65,20 @@ class MentorStudentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         return data
+
+
+class SessionSerializer(serializers.ModelSerializer):    
+    bhaag_class = BhaagClassSerializer()
+    day_mentor = MentorStudentSerializer()
+    class Meta:
+        model = Session
+        exclude = ()
+
+
+class AttendanceSerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = Attendance
+        exclude = ()
 
 
 class UserSerializer(serializers.ModelSerializer):

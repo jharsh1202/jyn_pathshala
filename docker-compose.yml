@@ -16,9 +16,11 @@ services:
 
   celery:
     build: .
-    command: celery -A jyn_pathshala worker -l info
+    command: bash -c "celery -A jyn_pathshala worker -l info & celery -A jyn_pathshala beat -l info & celery -A jyn_pathshala flower"
     volumes:
       - .:/usr/src/app
+    ports:
+      - "5555:5555"
     depends_on:
       - redis
     networks:

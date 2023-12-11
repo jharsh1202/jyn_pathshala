@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Make port 8000 available to the world outside this container
-EXPOSE 8000
+EXPOSE 8000 5555
 
 # Define environment variable for Celery to run in production
 ENV DJANGO_SETTINGS_MODULE=jyn_pathshala.settings
