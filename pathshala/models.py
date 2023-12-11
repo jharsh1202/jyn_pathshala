@@ -21,10 +21,10 @@ class UserProfile(models.Model):
     middle_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30)
     groups = models.ManyToManyField(Group)
-    dob = models.DateField()
+    dob = models.DateField(null=True)
     phone = models.CharField(max_length=15, blank=True, null=True) 
     alias = models.CharField(max_length=15, blank=True, null=True, unique=True)
-    email = models.EmailField(unique=True, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
     blood_group = models.CharField(max_length=5, blank=True, null=True, choices=BLOOD_GROUP_CHOICES)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
     date_of_joining = models.DateField(null=True, blank=True)
@@ -112,7 +112,7 @@ class Student(RegistrationRoleMixin, models.Model):
     bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT, related_name='bhaag_class_section')
 
     def __str__(self):
-        return f"{self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.profile.first_name} {self.profile.phone}"
+        return f"{self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.bhaag_class_section.section} {self.bhaag_class_section.bhaag_class.bhaag_category.category} {self.profile.first_name} {self.profile.phone}"
 
 
 class Mentor(RegistrationRoleMixin, models.Model):

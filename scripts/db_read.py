@@ -1,7 +1,11 @@
+# INSIDE SHELL
+# PUT master db CSV scripts/jyn_db.csv
+# exec(open('scripts/db_read.py').read())
+
 import pandas as pd
 
-# Specify the path to your Excel file
-excel_file_path = 'jyn_db.csv'
+
+excel_file_path = 'scripts/jyn_db.csv'
 
 
 def convert_date_format(input_date):
@@ -38,27 +42,29 @@ import random
 from pathshala.models import Student, UserProfile, User, BhaagClass, Bhaag, BhaagCategory, Location, Group, BhaagClassSection
 from django.db import transaction
 try:
-    for name in ['Student', 'Mentor', 'Admin', 'Volunteer', 'Member', 'Parent']:
+    for name in ['Student', 'Mentor', 'Admin', 'Volunteer', 'Member', 'Parent', 'Swadhyay']:
         group, created = Group.objects.get_or_create(name=name)
     
     # BASE DATA :) # !!IMPORTANT
             
 
-    # with transaction.atomic():
+    with transaction.atomic():
 
-    #     location=Location.objects.create(street_address="Sector 27", city="Noida", state="Uttar Pradesh", country="India")
+        location=Location.objects.create(street_address="Sector 27", city="Noida", state="Uttar Pradesh", country="India")
 
-    #     for bhag in Bhaag.BHAG_CHOICES:
-    #         bhag=Bhaag.objects.create(name=bhag[0], book='https://www.africau.edu/images/default/sample.pdf')
-    #         for bhag_mode in BhaagCategory.SESSION_CATEGORIES:
-    #             print("mode--", bhag_mode)
-    #             bhag_category=BhaagCategory.objects.create(bhaag=bhag, category=bhag_mode[0])
-    #             for location in Location.objects.all():
-    #                 print("location--", location)
-    #                 bhag_class=BhaagClass.objects.create(bhaag_category=bhag_category, location=location)
-    #                 for section in ['A']: #TODO DYANMIC
-    #                     bhag_class_section=BhaagClassSection.objects.create(bhaag_class=bhag_class, section=section)
-    #     print('base data created', 'create a section B for bhag 1 oral prelims')
+        for bhag in Bhaag.BHAG_CHOICES:
+            bhag=Bhaag.objects.create(name=bhag[0], book='https://www.africau.edu/images/default/sample.pdf') #UPDATE URLS
+            for bhag_mode in BhaagCategory.SESSION_CATEGORIES:
+                print("mode--", bhag_mode)
+                bhag_category=BhaagCategory.objects.create(bhaag=bhag, category=bhag_mode[0])
+                for location in Location.objects.all():
+                    print("location--", location)
+                    bhag_class=BhaagClass.objects.create(bhaag_category=bhag_category, location=location)
+                    for section in ['A']: #TODO DYANMIC MANUALLY ADD SECTION B FOR BHAG 1 ORAL PRELIMS AS PER DEC 2023
+                        bhag_class_section=BhaagClassSection.objects.create(bhaag_class=bhag_class, section=section)
+                        if bhag.name == 'Bhag 1 Oral Prelims':
+                            bhag_class_section=BhaagClassSection.objects.create(bhaag_class=bhag_class, section='B')
+        print('base data created', 'create a section B for bhag 1 oral prelims')
 
 
     df = pd.read_csv(excel_file_path)
@@ -78,13 +84,8 @@ try:
             section=row['Section']
             doj=convert_date_format(row['Joining month'])
 
-            original_date_string = "27-07-2016"
-
-            original_date = datetime.strptime(original_date_string, "%d-%m-%Y")
-            formatted_date_string = original_date.strftime("%Y-%m-%d")
-
             doj = '2023-01-01' if not doj else doj #TODO IMPORTANT!!
-            doj_user_name=doj
+            doj_user_name=doj.replace(" ", "").replace("-", "_")
             user_name = student_name.split()[0].lower()+"_"+doj+" "+dob+str(random.randint(100, 999))
             print(user_name, student_name, bhag_name, class_mode, dob, mobile, city, address, doj)
             user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com', password='RAIPUR@123')
