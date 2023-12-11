@@ -56,8 +56,7 @@ class Location(models.Model):
 
 class Bhaag(models.Model):
     BHAG_CHOICES = (
-        ('Bhag 1 Oral Prelims - A', 'Bhag 1 Oral Prelims - A'),
-        ('Bhag 1 Oral Prelims - B', 'Bhag 1 Oral Prelims - B'),
+        ('Bhag 1 Oral Prelims', 'Bhag 1 Oral Prelims'),
         ('Bhag 1 Advanced', 'Bhag 1 Advanced'),
         ('Bhag 2 Advanced', 'Bhag 2 Advanced'),
         ('Bhag 3 Prelims', 'Bhag 3 Prelims'),
@@ -93,25 +92,39 @@ class BhaagClass(models.Model):
         return f"{self.bhaag_category.bhaag.name} {self.bhaag_category.category} {self.location}"
 
 
+class BhaagClassSection(models.Model):
+    bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.CASCADE)
+    section = models.CharField(choices=[
+        ('A', 'A'),
+        ('B', 'B'),
+        ('C', 'C'),
+        ('D', 'D'),
+        ('E', 'E')
+    ], max_length=1)
+
+    def __str__(self):
+        return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.section} {self.bhaag_class.bhaag_category.category} {self.bhaag_class.location}"
+
+
 class Student(RegistrationRoleMixin, models.Model):
     group_name = "Student"
     profile = models.OneToOneField(UserProfile, on_delete=models.PROTECT, related_name='student')
-    bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT, related_name='bhaag_class')
+    bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT, related_name='bhaag_class_section')
 
     def __str__(self):
-        return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.profile.first_name} {self.profile.phone}"
+        return f"{self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.profile.first_name} {self.profile.phone}"
 
 
 class Mentor(RegistrationRoleMixin, models.Model):
     group_name = "Mentor"
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='mentor')
-    bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT)
+    bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT)
 
     def __str__(self):
-        return f"{self.profile.first_name} {self.bhaag_class.bhaag_category.bhaag.name}"
+        return f"{self.profile.first_name} {self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name}"
 
     class Meta:
-        unique_together = ["profile", "bhaag_class"]
+        unique_together = ["profile", "bhaag_class_section"]
 
 class Parent(RegistrationRoleMixin, models.Model):
     group_name = "Parent"
@@ -132,11 +145,11 @@ class Volunteer(RegistrationRoleMixin, models.Model):
 
 class Session(models.Model):
     date = models.DateField()
-    bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.PROTECT)
+    bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT)
     day_mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE, related_name='day_mentor')
 
     def __str__(self):
-        return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.date} {self.day_mentor}"
+        return f"{self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.date} {self.day_mentor}"
 
 
 class Attendance(models.Model):
@@ -145,5 +158,5 @@ class Attendance(models.Model):
     status = models.BooleanField()
 
     def __str__(self):
-        return f"{self.student.profile.first_name} {self.session.bhaag_class.bhaag_category.bhaag.name} {self.status}"
+        return f"{self.student.profile.first_name} {self.session.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.status}"
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, Bhaag, Student, Mentor, Parent, Volunteer, Session, Attendance, BhaagCategory, BhaagClass, Location
+from .models import UserProfile, Bhaag, Student, Mentor, Parent, Volunteer, Session, Attendance, BhaagCategory, BhaagClass, Location, BhaagClassSection
 
 admin.site.register(UserProfile)
 admin.site.register(Bhaag)
@@ -12,3 +12,4 @@ admin.site.register(Attendance)
 admin.site.register(BhaagClass)
 admin.site.register(BhaagCategory)
 admin.site.register(Location)
+admin.site.register(BhaagClassSection)
