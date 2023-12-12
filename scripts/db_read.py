@@ -63,7 +63,7 @@ try:
                     bhag_class=BhaagClass.objects.create(bhaag_category=bhag_category, location=location)
                     for section in ['A']: #TODO DYANMIC MANUALLY ADD SECTION B FOR BHAG 1 ORAL PRELIMS AS PER DEC 2023
                         bhag_class_section=BhaagClassSection.objects.create(bhaag_class=bhag_class, section=section)
-                        if bhag.name == 'Bhag 1 Oral Prelims':
+                        if bhag.name == 'Bhag 1 Oral Prelims' and bhag_category.category=='online':
                             bhag_class_section=BhaagClassSection.objects.create(bhaag_class=bhag_class, section='B')
         print('base data created', 'create a section B for bhag 1 oral prelims')
 

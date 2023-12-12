@@ -128,6 +128,7 @@ class Student(RegistrationRoleMixin, models.Model):
     class Meta:
         unique_together = ["profile", "bhaag_class_section"]
 
+
 class Mentor(RegistrationRoleMixin, models.Model):
     group_name = "Mentor"
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='mentor')
