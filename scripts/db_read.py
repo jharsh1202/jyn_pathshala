@@ -1,11 +1,12 @@
 # INSIDE SHELL
-# PUT master db CSV scripts/jyn_db.csv
+# PUT master db CSV scripts/jyn_db_students.csv
+# PUT master db CSV scripts/jyn_db_mentors.csv
 # exec(open('scripts/db_read.py').read())
 
 import pandas as pd
 
 
-excel_file_path = 'scripts/jyn_db.csv'
+excel_file_path = 'scripts/jyn_db_students.csv'
 
 
 def convert_date_format(input_date):
@@ -39,7 +40,7 @@ def convert_to_ymd(date_string):
 
 from datetime import datetime
 import random
-from pathshala.models import Student, UserProfile, User, BhaagClass, Bhaag, BhaagCategory, Location, Group, BhaagClassSection
+from pathshala.models import Student, UserProfile, User, BhaagClass, Bhaag, BhaagCategory, Location, Group, BhaagClassSection, Mentor
 from django.db import transaction
 try:
     for name in ['Student', 'Mentor', 'Admin', 'Volunteer', 'Member', 'Parent', 'Swadhyay']:
@@ -85,17 +86,18 @@ try:
             doj=convert_date_format(row['Joining month'])
 
             doj = '2023-01-01' if not doj else doj #TODO IMPORTANT!!
-            doj_user_name=doj.replace(" ", "").replace("-", "_")
-            user_name = student_name.split()[0].lower()+"_"+doj+" "+dob+str(random.randint(100, 999))
+            user_name = (student_name.split()[0].lower()+"_"+doj+"_"+dob+str(random.randint(100, 999))).replace(" ", "").replace("-", "_")
             print(user_name, student_name, bhag_name, class_mode, dob, mobile, city, address, doj)
             user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com', password='RAIPUR@123')
-            user_profile=UserProfile(user=user, first_name=student_name.split()[0], 
-                                    last_name=student_name.split()[1],
-                                    dob=dob,
-                                    phone=mobile,
-                                    email=user_name+'@jynpathshala.com',
-                                    date_of_joining=doj
-                                    )
+            user_profile=UserProfile(
+                user=user, 
+                first_name=student_name.split()[0], 
+                last_name=student_name.split()[1],
+                dob=dob,
+                phone=mobile,
+                email=user_name+'@jynpathshala.com',
+                date_of_joining=doj
+            )
             user_profile.save()
             user_profile.groups.set([group])
             bhag=Bhaag.objects.get(name=bhag_name)
@@ -113,3 +115,36 @@ except Exception as e:
     print('Exception Found: %s %s %s %s', exc_type,fname, exc_tb.tb_lineno)
     print(f"Error reading Excel file: {e}")
     df = None
+
+
+try:
+    mentors_excel_file_path = 'scripts/jyn_db_mentors.csv'
+    df1 = pd.read_csv(mentors_excel_file_path)
+
+    mentor_group=Group.objects.get(name='Mentor')
+    with transaction.atomic():
+        for index, row in df.iterrows():
+            mentor_name=row['name'].split()
+            first_name=mentor_name[0]
+            last_name=mentor_name[1]
+            class_mode=row['class_mode']
+            joining_month=row['joining_month']
+            dob=row['dob']
+            mobile_no=row['mobile_no']
+            city=row['city']
+            address=row['address']
+            doj=row['doj']
+            user_name=(first_name+"_"+dob).lower()
+            user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com', password='RAIPUR@123')
+            user_profile=UserProfile(user=user, 
+                                    first_name=first_name, 
+                                    last_name=last_name,
+                                    dob=dob,
+                                    phone=mobile_no,
+                                    email=user_name+'@jynpathshala.com',
+                                    date_of_joining=doj
+                                )
+            user_profile.save()
+            user_profile.groups.set([mentor_group])
+except Exception as e:
+    print('Exception', e)

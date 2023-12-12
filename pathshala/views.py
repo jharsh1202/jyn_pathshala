@@ -148,23 +148,24 @@ class StudentsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        mentor=Mentor.objects.get(profile=request.user.profile)
-        students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
-        from .models import BhaagClass, BhaagCategory, Bhaag, Location
-        if bhaag_class_id:=request.GET.get('bhaag_class_id'):
-            bhaag_class=BhaagClass.objects.get(id=bhaag_class_id)
-        elif request.GET.get('bhaag_id') or request.GET.get('bhaag_category') or request.GET.get('location_id'):
-            bhaag_class=BhaagClass.objects.get(
-                category=BhaagCategory.objects.get(
-                    bhaag=Bhaag.objects.get(id=request.GET.get('bhaag_id')),
-                    category=request.GET.get('bhaag_category'),
-                ),
-                location=Location.objects.get(id=request.GET.get('location_id'))
-            )
-        else:
-            mentor=Mentor.objects.get(profile=request.user.profile)
-            students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
-        students=Student.objects.filter(bhaag_class=bhaag_class)
+        #TODO Role check on UserProfile allow only for admin and mentor
+        from .models import BhaagClass, BhaagCategory, Bhaag, Location, BhaagClassSection
+        if bhaag_class_section_id:=request.GET.get('bhaag_class_section_id'):
+            bhaag_class_section=BhaagClassSection.objects.get(id=bhaag_class_section_id)
+        # elif bhaag_class_id:=request.GET.get('bhaag_class_id'):
+        #     bhaag_class=BhaagClass.objects.get(id=bhaag_class_id)
+        # elif request.GET.get('bhaag_id') or request.GET.get('bhaag_category') or request.GET.get('location_id'):
+        #     bhaag_class=BhaagClass.objects.get(
+        #         category=BhaagCategory.objects.get(
+        #             bhaag=Bhaag.objects.get(id=request.GET.get('bhaag_id')),
+        #             category=request.GET.get('bhaag_category'),
+        #         ),
+        #         location=Location.objects.get(id=request.GET.get('location_id'))
+        #     )
+        # else:
+        #     mentor=Mentor.objects.get(profile=request.user.profile)
+        #     students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
+        students=Student.objects.filter(bhaag_class_section=bhaag_class_section)
         serializer = MentorStudentSerializer(students, many=True)
         response={
             "status": "success",
