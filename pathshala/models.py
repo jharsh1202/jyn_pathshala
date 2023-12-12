@@ -52,6 +52,9 @@ class Location(models.Model):
 
     def __str__(self):
         return f"{self.street_address} {self.city} {self.state}"
+    
+    class Meta:
+        unique_together=["street_address", "city", "state", "country"]
 
 
 class Bhaag(models.Model):
@@ -82,6 +85,9 @@ class BhaagCategory(models.Model):
 
     def __str__(self):
         return f"{self.bhaag.name} {self.category}"
+    
+    class Meta:
+        unique_together=["bhaag", "category"]
 
 
 class BhaagClass(models.Model):
@@ -90,6 +96,9 @@ class BhaagClass(models.Model):
 
     def __str__(self):
         return f"{self.bhaag_category.bhaag.name} {self.bhaag_category.category} {self.location}"
+    
+    class Meta:
+        unique_together=['bhaag_category', 'location']
 
 
 class BhaagClassSection(models.Model):
@@ -105,6 +114,8 @@ class BhaagClassSection(models.Model):
     def __str__(self):
         return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.section} {self.bhaag_class.bhaag_category.category} {self.bhaag_class.location}"
 
+    class Meta:
+        unique_together=['section', 'bhaag_class']
 
 class Student(RegistrationRoleMixin, models.Model):
     group_name = "Student"
@@ -114,6 +125,8 @@ class Student(RegistrationRoleMixin, models.Model):
     def __str__(self):
         return f"{self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.bhaag_class_section.section} {self.bhaag_class_section.bhaag_class.bhaag_category.category} {self.profile.first_name} {self.profile.phone}"
 
+    class Meta:
+        unique_together = ["profile", "bhaag_class_section"]
 
 class Mentor(RegistrationRoleMixin, models.Model):
     group_name = "Mentor"
@@ -151,6 +164,8 @@ class Session(models.Model):
     def __str__(self):
         return f"{self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.date} {self.day_mentor}"
 
+    class Meta:
+        unique_together = ["date", "bhaag_class_section", "day_mentor"]
 
 class Attendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='student')
@@ -160,3 +175,5 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.student.profile.first_name} {self.session.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.status}"
 
+    class Meta:
+        unique_together = ["student", "session", "status"]
