@@ -184,20 +184,20 @@ class AttendanceAPIView(APIView):
             request_data = request.data
             student_ids=request_data.get('students_ids', [])
             students=Student.objects.filter(id__in=student_ids)
+            session=Session.objects.get(id=request_data.get('session_id'))
+            
             if students.count()!=len(student_ids):
                 response={
                     "status": "error",
                     "message": "",
                     "data": {},
                     "error": {
-                        "code": "400",
-                        "message": "Bad Request",
+                        "code": "404",
+                        "message": "some students were missing",
                         "details": f"{students} {session}",
                     }
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-            
-            session=Session.objects.get(id=request_data.get('session_id'))
             
             if not students or not session:
                 response={
@@ -230,7 +230,7 @@ class AttendanceAPIView(APIView):
                     "error": {
                         "code": "400",
                         "message": "Bad Request",
-                        "details": e,
+                        "details": str(e),
                     }
                 }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -242,7 +242,7 @@ class AttendanceAPIView(APIView):
                     "error": {
                         "code": "500",
                         "message": "Unexpected Error",
-                        "details": e,
+                        "details": str(e),
                     }
                 }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
