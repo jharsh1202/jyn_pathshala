@@ -131,14 +131,14 @@ class Student(RegistrationRoleMixin, models.Model):
 
 class Mentor(RegistrationRoleMixin, models.Model):
     group_name = "Mentor"
-    profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='mentor')
-    bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT)
+
+    profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='mentor', unique=True)
+    bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT, null=True, blank=True, unique=True) #, limit_choices_to=models.Q(owner=False)
+    owner = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.profile.first_name} {self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name}"
 
-    class Meta:
-        unique_together = ["profile", "bhaag_class_section"]
 
 
 class Parent(RegistrationRoleMixin, models.Model):

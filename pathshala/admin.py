@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import UserProfile, Bhaag, Student, Mentor, Parent, Volunteer, Session, Attendance, BhaagCategory, BhaagClass, Location, BhaagClassSection, Group
 
+
 class BhaagClassSectionFilter(admin.SimpleListFilter):
     title = 'Bhaag Class Section'
     parameter_name = 'bhaag_class_section'
@@ -13,6 +14,7 @@ class BhaagClassSectionFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(bhaag_class_section_id=self.value())
+
 
 class StudentAdmin(admin.ModelAdmin):
     list_display = ['id', 'get_student_info', 'bhaag_class_section']
@@ -29,15 +31,6 @@ class StudentAdmin(admin.ModelAdmin):
         return str(obj)
     get_student_info.short_description = 'Student Info'
 
-# Register your models and admin site
-admin.site.register(BhaagClassSection)
-admin.site.register(Student, StudentAdmin)
-
-
-# Register your models and admin site
-
-admin.site.register(UserProfile)
-admin.site.register(Bhaag)
 
 class MentorAdmin(admin.ModelAdmin):
     list_display = ['profile', 'bhaag_class_section']
@@ -45,7 +38,7 @@ class MentorAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'profile':
             mentor_group_id = Group.objects.get(name="Mentor")
-            kwargs['queryset'] = UserProfile.objects.filter(id__in=UserProfile.objects.filter(groups__in=[mentor_group_id]).all()) #filter(your_condition_here=user_profile)
+            kwargs['queryset'] = UserProfile.objects.filter(id__in=UserProfile.objects.filter(groups__in=[mentor_group_id]).all()).exclude(id__in=Mentor.objects.values('profile')) #filter(your_condition_here=user_profile)
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
@@ -59,4 +52,7 @@ admin.site.register(Attendance)
 admin.site.register(BhaagClass)
 admin.site.register(BhaagCategory)
 admin.site.register(Location)
-# admin.site.register(BhaagClassSection)
+admin.site.register(BhaagClassSection)
+admin.site.register(Student, StudentAdmin)
+admin.site.register(UserProfile)
+admin.site.register(Bhaag)
