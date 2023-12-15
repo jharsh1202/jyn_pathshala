@@ -15,6 +15,11 @@ class UserProfile(models.Model):
         ('O+', 'O+'),
         ('O-', 'O-'),
     ]
+    GENDER_CHOICES=[
+        ("Female","Female"),
+        ("Male","Male"),
+        ("Other","Other")
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     first_name = models.CharField(max_length=30)
     middle_name = models.CharField(max_length=30, blank=True, null=True)
@@ -27,6 +32,7 @@ class UserProfile(models.Model):
     blood_group = models.CharField(max_length=5, blank=True, null=True, choices=BLOOD_GROUP_CHOICES)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
     date_of_joining = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.profile_picture:
@@ -109,6 +115,9 @@ class BhaagClassSection(models.Model):
         ('D', 'D'),
         ('E', 'E')
     ], max_length=1)
+    primary_owner = models.ForeignKey("Mentor", on_delete=models.PROTECT)
+    secondary_owner = models.ForeignKey("Mentor", on_delete=models.PROTECT, null=True, blank=True, related_name="secondary_owner")
+    team = models.ManyToManyField("Mentor", related_name="team")
 
     def __str__(self):
         return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.section} {self.bhaag_class.bhaag_category.category} {self.bhaag_class.location}"
@@ -133,11 +142,9 @@ class Mentor(RegistrationRoleMixin, models.Model):
     group_name = "Mentor"
 
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='mentor', unique=True)
-    bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT, null=True, blank=True, unique=True) #, limit_choices_to=models.Q(owner=False)
-    owner = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.profile.first_name} {self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name}"
+        return f"{self.profile.first_name} {self.profile.last_name} {self.profile.phone}"
 
 
 

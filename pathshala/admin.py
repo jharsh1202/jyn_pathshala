@@ -32,19 +32,7 @@ class StudentAdmin(admin.ModelAdmin):
     get_student_info.short_description = 'Student Info'
 
 
-class MentorAdmin(admin.ModelAdmin):
-    list_display = ['profile', 'bhaag_class_section']
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'profile':
-            mentor_group_id = Group.objects.get(name="Mentor")
-            kwargs['queryset'] = UserProfile.objects.filter(id__in=UserProfile.objects.filter(groups__in=[mentor_group_id]).all()).exclude(id__in=Mentor.objects.values('profile')) #filter(your_condition_here=user_profile)
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-admin.site.register(Mentor, MentorAdmin)
-
-
+admin.site.register(Mentor)
 admin.site.register(Parent)
 admin.site.register(Volunteer)
 admin.site.register(Session)
