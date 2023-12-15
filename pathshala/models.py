@@ -5,7 +5,6 @@ from .mixins import RegistrationRoleMixin
 import os
 
 class UserProfile(models.Model):
-
     BLOOD_GROUP_CHOICES = [
         ('A+', 'A+'),
         ('A-', 'A-'),
@@ -73,7 +72,7 @@ class Bhaag(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-    
+
 
 class BhaagCategory(models.Model):
     SESSION_CATEGORIES = [
@@ -117,6 +116,7 @@ class BhaagClassSection(models.Model):
     class Meta:
         unique_together=['section', 'bhaag_class']
 
+
 class Student(RegistrationRoleMixin, models.Model):
     group_name = "Student"
     profile = models.OneToOneField(UserProfile, on_delete=models.PROTECT, related_name='student')
@@ -139,6 +139,7 @@ class Mentor(RegistrationRoleMixin, models.Model):
 
     class Meta:
         unique_together = ["profile", "bhaag_class_section"]
+
 
 class Parent(RegistrationRoleMixin, models.Model):
     group_name = "Parent"
@@ -167,6 +168,7 @@ class Session(models.Model):
 
     class Meta:
         unique_together = ["date", "bhaag_class_section", "day_mentor"]
+
 
 class Attendance(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='student')

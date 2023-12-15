@@ -179,36 +179,72 @@ class AttendanceAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        from .models import Session, Attendance
-        request_data = request.data
-        students=Student.objects.filter(id__in=request_data.get('students_ids', []))
-        session=Session.objects.get(id=request_data.get('session_id'))
-
-        if not students or not session:
-            response={
-                "status": "error",
-                "message": "bad request",
-                "data": f"{students} {session}",
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
         try:
-            with transaction.atomic():
-                for student in students:
-                    Attendance.objects.create(student=student, session=session, status=True)
-            response={
-                "status": "success",
-                "message": "attendance marked successfully",
-                "data": "",
-            }
-            return Response(response)
+            from .models import Session, Attendance
+            request_data = request.data
+            student_ids=request_data.get('students_ids', [])
+            students=Student.objects.filter(id__in=student_ids)
+            if students.count()!=len(student_ids):
+                response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Bad Request",
+                        "details": f"{students} {session}",
+                    }
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            
+            session=Session.objects.get(id=request_data.get('session_id'))
+            
+            if not students or not session:
+                response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Bad Request",
+                        "details": f"{students} {session}",
+                    }
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                with transaction.atomic():
+                    for student in students:
+                        Attendance.objects.create(student=student, session=session, status=True)
+                response={
+                    "status": "success",
+                    "message": "attendance marked successfully",
+                    "data": "",
+                }
+                return Response(response)
+            except Exception as e:
+                response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Bad Request",
+                        "details": e,
+                    }
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response={
-                "status": "error",
-                "message": "",
-                "data": e
-            }
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "500",
+                        "message": "Unexpected Error",
+                        "details": e,
+                    }
+                }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # class LocationAPIView(APIView):
