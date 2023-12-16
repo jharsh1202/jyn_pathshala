@@ -148,23 +148,9 @@ class StudentsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        #TODO Role check on UserProfile allow only for admin and mentor
         from .models import BhaagClass, BhaagCategory, Bhaag, Location, BhaagClassSection
         if bhaag_class_section_id:=request.GET.get('bhaag_class_section_id'):
             bhaag_class_section=BhaagClassSection.objects.get(id=bhaag_class_section_id)
-        # elif bhaag_class_id:=request.GET.get('bhaag_class_id'):
-        #     bhaag_class=BhaagClass.objects.get(id=bhaag_class_id)
-        # elif request.GET.get('bhaag_id') or request.GET.get('bhaag_category') or request.GET.get('location_id'):
-        #     bhaag_class=BhaagClass.objects.get(
-        #         category=BhaagCategory.objects.get(
-        #             bhaag=Bhaag.objects.get(id=request.GET.get('bhaag_id')),
-        #             category=request.GET.get('bhaag_category'),
-        #         ),
-        #         location=Location.objects.get(id=request.GET.get('location_id'))
-        #     )
-        # else:
-        #     mentor=Mentor.objects.get(profile=request.user.profile)
-        #     students=Student.objects.filter(bhaag_class=mentor.bhaag_class)
         students=Student.objects.filter(bhaag_class_section=bhaag_class_section)
         serializer = MentorStudentSerializer(students, many=True)
         response={
@@ -178,11 +164,53 @@ class StudentsAPIView(APIView):
 class AttendanceAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        try:
+            from .models import BhaagClass, BhaagCategory, Bhaag, Location, BhaagClassSection, Attendance, Session
+            if bhaag_class_section_id:=request.GET.get('bhaag_class_section_id'):
+                date=request.GET.get('date') 
+                try:
+                    session=Session.objects.get(bhaag_class_section_id=bhaag_class_section_id, date=date)
+                except Session.DoesNotExist:
+                    raise ValueError("Session not found")
+                attendance_record=Attendance.objects.filter(session=session, status=True).values_list('student_id', flat=True)
+                response={
+                    "status": "success",
+                    "message": "attendance records fetch successful",
+                    "data": attendance_record
+                }
+                return Response(response, status=status.HTTP_200_OK)
+            else:
+                response={
+                        "status": "error",
+                        "message": "",
+                        "data": {},
+                        "error": {
+                            "code": "400",
+                            "message": "Bad Request",
+                            "details": "bhaag_class_section_id",
+                        }
+                    }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response={
+                        "status": "error",
+                        "message": "",
+                        "data": {},
+                        "error": {
+                            "code": "500",
+                            "message": "Unexpected Error",
+                            "details": f"{e}",
+                        }
+                    }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
     def post(self, request):
         try:
             from .models import Session, Attendance
             request_data = request.data
             student_ids=request_data.get('students_ids', [])
+            date=request_data.get('date')
             students=Student.objects.filter(id__in=student_ids)
             session=Session.objects.get(id=request_data.get('session_id'))
             
@@ -193,7 +221,7 @@ class AttendanceAPIView(APIView):
                     "data": {},
                     "error": {
                         "code": "404",
-                        "message": "some students were missing",
+                        "message": "failed to fetch some students",
                         "details": f"{students} {session}",
                     }
                 }
