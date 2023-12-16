@@ -10,6 +10,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import action 
 from django.contrib.auth import authenticate
 from .models import Student, Mentor, Parent, Volunteer
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
 
 class RegistrationAPIView(APIView): 
     def post(self, request):
@@ -35,38 +40,49 @@ class RegistrationAPIView(APIView):
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginAPIView(APIView):
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-
-        # Implement user login logic
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            # Generate tokens
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
+class LoginAPIView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        # Customize the response data as needed
+        if response.status_code == status.HTTP_200_OK:
             response={
                 "status": "success",
                 "message": "Login successful",
-                "data": {'access_token': access_token, 'refresh_token': refresh_token},
+                "data": {'access_token': response.data.get('access'), 'refresh_token': response.data.get('refresh')},
             }
             return Response(response)
-        else:
-            # Authentication failed
+        
+
+class RefreshAPIView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        # Customize the response data as needed
+        if response.status_code == status.HTTP_200_OK:
             response={
-                "status": "error",
-                "message": "",
-                "data": {},
-                "error": {
-                    "code": "401",
-                    "message": "Invalid credentials",
-                    "details": "Please Try again."
-                }
+                "status": "success",
+                "message": "refresh successful",
+                "data": {'access_token': response.data.get('access'), 'refresh_token': response.data.get('refresh')},
             }
-            return Response(response, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(response)
+
+
+class TokenVerifyAPIView(TokenVerifyView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        # Customize the response data as needed
+        if response.status_code == status.HTTP_200_OK:
+            response={
+                "status": "success",
+                "message": "verification successful",
+                "data": {}
+            }
+        return Response(response)
+
+
+# class LoginAPIView(APIView):
 
 
 class LogoutAPIView(APIView):
