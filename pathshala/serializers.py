@@ -112,3 +112,21 @@ class UserSerializer(serializers.ModelSerializer):
         user_profile = UserProfile.objects.create(user=user, **profile_data)
         user_profile.groups.set(group)
         return user
+    
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('profile', None)
+
+        # Update User model fields
+        # instance.username = validated_data.get('username', instance.username)
+        instance.email = validated_data.get('email', instance.email)
+        instance.save()
+
+        # Update UserProfile model fields
+        if profile_data:
+            profile_instance = instance.profile
+            profile_serializer = UserProfileSerializer(profile_instance, data=profile_data, partial=True)
+            if profile_serializer.is_valid():
+                profile_serializer.save()
+
+        return instance
