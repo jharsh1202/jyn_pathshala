@@ -16,7 +16,9 @@ try:
     last_name="Jain"
     dob='1983-01-03'
     user_name=(first_name+"_"+dob).lower().replace("-", "_")
-    user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com', password='RAIPUR@123')
+    user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com')
+    user.set_password('Raipur@123')
+    user.save()
     user_profile=UserProfile(
         user=user, 
         first_name=first_name, 

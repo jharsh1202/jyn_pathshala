@@ -62,7 +62,9 @@ try:
             doj = '2023-01-01' if not doj else doj #TODO IMPORTANT!!
             user_name = (student_name.split()[0].lower()+"_"+doj+"_"+dob+str(random.randint(100, 999))).replace(" ", "").replace("-", "_")
             print(user_name, student_name, bhag_name, class_mode, dob, mobile, city, address, doj)
-            user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com', password='RAIPUR@123')
+            user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com')
+            user.password='Raipur@123'
+            user.save()
             user_profile=UserProfile(
                 user=user, 
                 first_name=student_name.split()[0], 
