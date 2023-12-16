@@ -82,7 +82,12 @@ class ProfileAPIView(APIView):
     
 
     def patch(self, request, format=None):
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        from .models import UserProfile
+        request_data=request.data
+        if user_profile_id:=int(request_data.get("user_profile_id")):
+            serializer = UserSerializer(UserProfile.objects.get(id=user_profile_id).user, data=request_data, partial=True)
+        else:
+            serializer = UserSerializer(request.user, data=request_data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -218,7 +223,6 @@ class AttendanceAPIView(APIView):
             from .models import Session, Attendance
             request_data = request.data
             student_ids=request_data.get('students_ids', [])
-            date=request_data.get('date')
             students=Student.objects.filter(id__in=student_ids)
             session=Session.objects.get(id=request_data.get('session_id'))
             
@@ -251,7 +255,7 @@ class AttendanceAPIView(APIView):
             try:
                 with transaction.atomic():
                     for student in students:
-                        Attendance.objects.create(student=student, session=session, status=True)
+                        Attendance.objects.update_or_create(student=student, session=session, status=True)
                 response={
                     "status": "success",
                     "message": "attendance marked successfully",
