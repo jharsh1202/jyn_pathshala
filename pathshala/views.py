@@ -67,7 +67,42 @@ class LoginAPIView(APIView):
                 }
             }
             return Response(response, status=status.HTTP_401_UNAUTHORIZED)
-        
+
+
+class LogoutAPIView(APIView):
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh_token")
+
+            if not refresh_token:
+                raise ValueError("Refresh token is required for logout.")
+
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            
+            response_data = {
+                "status": "success",
+                "message": "Logout successful",
+                "data": {},
+            }
+
+            return Response(response_data)
+
+        except Exception as e:
+            response_data = {
+                "status": "error",
+                "message": "Unexpected Error",
+                "data": {},
+                "error": {
+                    "code": "500",
+                    "message": str(e),
+                    "details": str(e),
+                }
+            }
+
+            return Response(response_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class ProfileAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
