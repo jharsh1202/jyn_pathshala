@@ -39,10 +39,8 @@ class UserProfile(models.Model):
             username = self.user.username if self.user else 'unknown_user'
             timestamp = str(int(timezone.now().timestamp()))
             file_extension = os.path.splitext(self.profile_picture.name)[1]
-            filename = f'profile_pics/{username}_{timestamp}{file_extension}'
-
+            filename = f'{username}_{timestamp}{file_extension}'
             self.profile_picture.name = filename
-
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -174,7 +172,7 @@ class Session(models.Model):
         return f"{self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.date} {self.day_mentor}"
 
     class Meta:
-        unique_together = ["date", "bhaag_class_section", "day_mentor"]
+        unique_together = ["date", "bhaag_class_section"]
 
 
 class Attendance(models.Model):
