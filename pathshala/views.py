@@ -42,17 +42,40 @@ class RegistrationAPIView(APIView):
 
 class LoginAPIView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        
-        # Customize the response data as needed
-        if response.status_code == status.HTTP_200_OK:
+        try:
+            response = super().post(request, *args, **kwargs)
+            # Customize the response data as needed
+            if response.status_code == status.HTTP_200_OK:
+                response={
+                    "status": "success",
+                    "message": "Login successful",
+                    "data": {'access_token': response.data.get('access'), 'refresh_token': response.data.get('refresh')},
+                }
+                return Response(response)
+            else:
+                response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "401",
+                        "message": "Invalid credentials",
+                        "details": "Please Try again."
+                    }
+                }
+                return Response(response, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
             response={
-                "status": "success",
-                "message": "Login successful",
-                "data": {'access_token': response.data.get('access'), 'refresh_token': response.data.get('refresh')},
-            }
-            return Response(response)
-        
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "401",
+                        "message": "Invalid credentials",
+                        "details": "Please Try again."
+                    }
+                }
+            return Response(response, status=status.HTTP_401_UNAUTHORIZED)
 
 class RefreshAPIView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
@@ -66,7 +89,7 @@ class RefreshAPIView(TokenRefreshView):
                 "data": {'access_token': response.data.get('access'), 'refresh_token': response.data.get('refresh')},
             }
             return Response(response)
-
+        
 
 class TokenVerifyAPIView(TokenVerifyView):
     def post(self, request, *args, **kwargs):

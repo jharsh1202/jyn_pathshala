@@ -4,7 +4,38 @@ from django.utils import timezone
 from .mixins import RegistrationRoleMixin
 import os
 
-class UserProfile(models.Model):
+
+
+class CreateUpdateAtAbstractModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        abstract = True
+
+
+class TimestampedModel(models.Model):
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='%(class)s_created_by')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='%(class)s_updated_by')
+
+    class Meta:
+        abstract = True
+
+
+class ActiveInactiveAbstractModel(models.Model):
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        abstract = True
+
+
+class HistoryStatusAbstractModel(CreateUpdateAtAbstractModel, TimestampedModel, ActiveInactiveAbstractModel):
+
+    class Meta:
+        abstract = True
+
+
+class UserProfile(HistoryStatusAbstractModel):
     BLOOD_GROUP_CHOICES = [
         ('A+', 'A+'),
         ('A-', 'A-'),
@@ -30,12 +61,12 @@ class UserProfile(models.Model):
     alias = models.CharField(max_length=15, blank=True, null=True, unique=True)
     email = models.EmailField(blank=True, null=True)
     blood_group = models.CharField(max_length=5, blank=True, null=True, choices=BLOOD_GROUP_CHOICES)
-    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True) #DEFAULT IMAGE , default='profile_pics/default_dp.png'
     date_of_joining = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if self.profile_picture:
+        if self.profile_picture: #DEFAULT IMAGE and self.profile_picture.name!='profile_pics/default_dp.png'
             username = self.user.username if self.user else 'unknown_user'
             timestamp = str(int(timezone.now().timestamp()))
             file_extension = os.path.splitext(self.profile_picture.name)[1]
@@ -47,7 +78,7 @@ class UserProfile(models.Model):
         return f"{self.first_name} {self.last_name} {self.phone}"
 
 
-class Location(models.Model):
+class Location(HistoryStatusAbstractModel):
     street_address = models.CharField(max_length=200)
     city = models.CharField(max_length=200)
     state = models.CharField(max_length=200)
@@ -60,7 +91,7 @@ class Location(models.Model):
         unique_together=["street_address", "city", "state", "country"]
 
 
-class Bhaag(models.Model):
+class Bhaag(HistoryStatusAbstractModel):
     BHAG_CHOICES = (
         ('Bhag 1 Oral Prelims', 'Bhag 1 Oral Prelims'),
         ('Bhag 1 Advanced', 'Bhag 1 Advanced'),
@@ -78,7 +109,7 @@ class Bhaag(models.Model):
         return f"{self.name}"
 
 
-class BhaagCategory(models.Model):
+class BhaagCategory(HistoryStatusAbstractModel):
     SESSION_CATEGORIES = [
         ('offline', 'offline'),
         ('online', 'online'),
@@ -93,7 +124,7 @@ class BhaagCategory(models.Model):
         unique_together=["bhaag", "category"]
 
 
-class BhaagClass(models.Model):
+class BhaagClass(HistoryStatusAbstractModel):
     bhaag_category = models.ForeignKey(BhaagCategory, on_delete=models.CASCADE)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='location')
 
@@ -104,7 +135,7 @@ class BhaagClass(models.Model):
         unique_together=['bhaag_category', 'location']
 
 
-class BhaagClassSection(models.Model):
+class BhaagClassSection(HistoryStatusAbstractModel):
     bhaag_class = models.ForeignKey(BhaagClass, on_delete=models.CASCADE)
     section = models.CharField(choices=[
         ('A', 'A'),
@@ -124,7 +155,7 @@ class BhaagClassSection(models.Model):
         unique_together=['section', 'bhaag_class']
 
 
-class Student(RegistrationRoleMixin, models.Model):
+class Student(RegistrationRoleMixin, HistoryStatusAbstractModel):
     group_name = "Student"
     profile = models.OneToOneField(UserProfile, on_delete=models.PROTECT, related_name='student')
     bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT, related_name='bhaag_class_section')
@@ -136,7 +167,7 @@ class Student(RegistrationRoleMixin, models.Model):
         unique_together = ["profile", "bhaag_class_section"]
 
 
-class Mentor(RegistrationRoleMixin, models.Model):
+class Mentor(RegistrationRoleMixin, HistoryStatusAbstractModel):
     group_name = "Mentor"
 
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='mentor', unique=True)
@@ -146,7 +177,7 @@ class Mentor(RegistrationRoleMixin, models.Model):
 
 
 
-class Parent(RegistrationRoleMixin, models.Model):
+class Parent(RegistrationRoleMixin, HistoryStatusAbstractModel):
     group_name = "Parent"
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='parent')
     children = models.ManyToManyField(Student, related_name='parents')
@@ -155,7 +186,7 @@ class Parent(RegistrationRoleMixin, models.Model):
         return f"{self.profile.first_name} {self.profile.phone}"
 
 
-class Volunteer(RegistrationRoleMixin, models.Model):
+class Volunteer(RegistrationRoleMixin, HistoryStatusAbstractModel):
     group_name = "Volunteer"
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='volunteer')
 
@@ -163,9 +194,14 @@ class Volunteer(RegistrationRoleMixin, models.Model):
         return f"{self.profile.first_name} {self.profile.phone}"
 
 
-class Session(models.Model):
+class Session(HistoryStatusAbstractModel):
     date = models.DateField()
     bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT)
+    # session_type = models.CharField(choices={
+    #     ('regular', 'regular'),
+    #     ('activity', 'activity'),
+    #     ('trip', 'trip')
+    # }, max_length=20)
     day_mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE, related_name='day_mentor')
 
     def __str__(self):
@@ -175,7 +211,7 @@ class Session(models.Model):
         unique_together = ["date", "bhaag_class_section"]
 
 
-class Attendance(models.Model):
+class Attendance(HistoryStatusAbstractModel):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='student')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='session')
     status = models.BooleanField()
