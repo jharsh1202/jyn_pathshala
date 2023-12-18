@@ -188,20 +188,74 @@ class BhaagListView(APIView):
 
 class SessionAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        from .models import Session
-        
-        if session_date:=request.GET.get('date'):
-            session_objects = Session.objects.filter(date=session_date)
-        else:
-            session_objects = Session.objects.all()
-        serializer = SessionSerializer(session_objects, many=True)
+        try:
+            from .models import Session
+            
+            if session_date:=request.GET.get('date'):
+                session_objects_online = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="online")
+                session_objects_offline = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="offline")
+            else:
+                response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Bad Request",
+                        "details": "date not found"
+                    }
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            serializer_online = SessionSerializer(session_objects_online, many=True)
+            serializer_offline = SessionSerializer(session_objects_offline, many=True)
 
-        response={
-            "status": "success",
-            "message": "Session fetch successful",
-            "data": serializer.data 
-        }
-        return Response(response, status=status.HTTP_200_OK)
+            response={
+                "status": "success",
+                "message": "Session fetch successful",
+                "data": {
+                    "online":serializer_online.data, 
+                    "offline": serializer_offline.data
+                }
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Unexpected Error",
+                        "details": f"{e}"
+                    }
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, *args, **kwargs):
+        from .models import Session
+        session=Session.objects.get(id=request.data.get('session_id'))
+        print(request.data)
+        session_serializer=SessionSerializer(session, data=request.data, partial=True)
+        if session_serializer.is_valid():
+            session_serializer.save()
+            response={
+                "status": "success",
+                "message": "Session update successful",
+                "data": ""
+            }
+            return Response(response)
+        else:
+            response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Unexpected Error",
+                        "details": f"{session_serializer.errors}"
+                    }
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 

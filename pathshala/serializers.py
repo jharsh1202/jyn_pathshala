@@ -14,27 +14,27 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        exclude = ('user', )
+        exclude = ('user', 'created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class BhaagSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Bhaag
-        exclude = ()
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class BhaagCategorySerializer(serializers.ModelSerializer):
     bhaag = BhaagSerializer()
     class Meta:
         model = BhaagCategory
-        exclude = ('id', )
+        exclude = ('id', 'created_at', 'updated_at', 'created_by', 'updated_by', )
 
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        exclude = ('id', )
+        exclude = ('id', 'created_at', 'updated_at', 'created_by', 'updated_by', )
 
 
 class BhaagClassSerializer(serializers.ModelSerializer):
@@ -42,13 +42,13 @@ class BhaagClassSerializer(serializers.ModelSerializer):
     location = LocationSerializer()
     class Meta:
         model = BhaagClass
-        exclude = ()
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 class BhaagClassSectionSerializer(serializers.ModelSerializer):
     bhaag_class = BhaagClassSerializer()
     class Meta:
         model = BhaagClassSection
-        exclude = ()
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -57,7 +57,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student
-        exclude = ()
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class MentorSerializer(serializers.ModelSerializer):
@@ -65,7 +65,7 @@ class MentorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mentor
-        exclude = ()
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class MentorStudentSerializer(serializers.ModelSerializer):
@@ -74,21 +74,30 @@ class MentorStudentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student
-        exclude = ()
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class SessionSerializer(serializers.ModelSerializer):    
+    day_mentor_id = serializers.IntegerField(write_only=True) #for updating mentor id 
+
     bhaag_class_section = BhaagClassSectionSerializer()
-    day_mentor = MentorSerializer()
+    day_mentor = MentorSerializer(read_only=True)
     class Meta:
         model = Session
-        exclude = ()
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+
+    def update(self, instance, validated_data):
+        day_mentor_data = validated_data.pop('day_mentor', None)
+        if day_mentor_data:
+            instance.day_mentor = Mentor.objects.get(id=day_mentor_data.get('id'))
+            instance.save()
+        return super().update(instance, validated_data)
 
 
 class AttendanceSerializer(serializers.ModelSerializer):    
     class Meta:
         model = Attendance
-        exclude = ()
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class UserSerializer(serializers.ModelSerializer):

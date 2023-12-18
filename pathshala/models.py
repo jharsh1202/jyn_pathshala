@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.utils import timezone
 from .mixins import RegistrationRoleMixin
 import os
-
+from datetime import time
 
 
 class CreateUpdateAtAbstractModel(models.Model):
@@ -196,6 +196,7 @@ class Volunteer(RegistrationRoleMixin, HistoryStatusAbstractModel):
 
 class Session(HistoryStatusAbstractModel):
     date = models.DateField()
+    time = models.TimeField(default=time(10, 0))
     bhaag_class_section = models.ForeignKey(BhaagClassSection, on_delete=models.PROTECT)
     # session_type = models.CharField(choices={
     #     ('regular', 'regular'),
