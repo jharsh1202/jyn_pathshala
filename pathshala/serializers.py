@@ -44,8 +44,18 @@ class BhaagClassSerializer(serializers.ModelSerializer):
         model = BhaagClass
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
+
+class MentorSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer()
+
+    class Meta:
+        model = Mentor
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+
+
 class BhaagClassSectionSerializer(serializers.ModelSerializer):
     bhaag_class = BhaagClassSerializer()
+    team = MentorSerializer(many=True)
     class Meta:
         model = BhaagClassSection
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
@@ -60,12 +70,6 @@ class StudentSerializer(serializers.ModelSerializer):
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
-class MentorSerializer(serializers.ModelSerializer):
-    profile = UserProfileSerializer()
-
-    class Meta:
-        model = Mentor
-        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class MentorStudentSerializer(serializers.ModelSerializer):
