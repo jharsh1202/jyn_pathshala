@@ -1,8 +1,10 @@
+from collections.abc import Iterable
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
 from .mixins import RegistrationRoleMixin
 import os
+from django.core.exceptions import ValidationError
 from datetime import time
 
 
@@ -147,6 +149,16 @@ class BhaagClassSection(HistoryStatusAbstractModel):
     primary_owner = models.ForeignKey("Mentor", on_delete=models.PROTECT)
     secondary_owner = models.ForeignKey("Mentor", on_delete=models.PROTECT, null=True, blank=True, related_name="secondary_owner")
     team = models.ManyToManyField("Mentor", related_name="team")
+
+    def save(self, *args, **kwargs):
+        if self.primary_owner not in self.team.all():
+            self.team.add(self.primary_owner)
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if self.primary_owner not in self.team.all():
+            raise ValidationError("Primary owner must be in the team.")
 
     def __str__(self):
         return f"{self.bhaag_class.bhaag_category.bhaag.name} {self.section} {self.bhaag_class.bhaag_category.category} {self.bhaag_class.location}"
