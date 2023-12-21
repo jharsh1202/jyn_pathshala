@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Student, BhaagClass, Bhaag, BhaagCategory, Location, Group, Session, Attendance, BhaagClassSection, Mentor
+from .models import UserProfile, Student, BhaagClass, Bhaag, BhaagCategory, Location, Group, Session, Attendance, \
+    BhaagClassSection, Mentor, VideoBhaag
 from django.db import transaction
 
 
@@ -78,6 +79,13 @@ class MentorStudentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+
+
+class VideoBhaagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = VideoBhaag
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 

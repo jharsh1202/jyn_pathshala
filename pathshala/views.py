@@ -4,17 +4,26 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer
+from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer, VideoBhaagSerializer
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action 
 from django.contrib.auth import authenticate
-from .models import Student, Mentor, Parent, Volunteer
+from .models import Student, Mentor, Parent, Volunteer, VideoBhaag
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
 )
+from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
+
+
+class VideoLibraryPagination(PageNumberPagination):
+    page_size = 10  # Adjust the page size as needed
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
 
 class RegistrationAPIView(APIView): 
     def post(self, request):
@@ -192,8 +201,8 @@ class SessionAPIView(APIView):
             from .models import Session
             
             if session_date:=request.GET.get('date'):
-                session_objects_online = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="online")
-                session_objects_offline = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="offline")
+                session_objects_online = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="online", is_active=True)
+                session_objects_offline = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="offline", is_active=True)
             else:
                 response={
                     "status": "error",
@@ -414,5 +423,60 @@ class AttendanceAPIView(APIView):
                     }
                 }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class VideoLibraryAPIView(APIView):
+    pagination_class = VideoLibraryPagination
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            bhaag_id = request.GET.get('bhaag_id')
+            category = request.GET.get('category')
+            search = request.GET.get('search')
+
+            # Build Q objects for dynamic filtering
+            filters = Q()
+
+            if bhaag_id:
+                filters &= Q(bhaag__id=bhaag_id)
+
+            if category:
+                filters &= Q(category=category)
+
+            if search:
+                filters &= Q(title__icontains=search)
+
+            # Filter queryset based on parameters
+            queryset = VideoBhaag.objects.filter(filters)
+
+            # Apply pagination
+            paginator = VideoLibraryPagination()
+            paginated_queryset = paginator.paginate_queryset(queryset, request)
+
+            # Serialize the paginated queryset
+            serializer = VideoBhaagSerializer(paginated_queryset, many=True)
+
+            # Return the serialized data in the response
+            paginated_response = paginator.get_paginated_response(serializer.data)
+            response={
+                "status": "success",
+                "message": "video library records fetch successful",
+                "data": paginated_response.data
+            }
+            return Response(response)
+        except Exception as e:
+            response={
+                "status": "error",
+                "message": "",
+                "data": {},
+                "error": {
+                    "code": "400",
+                    "message": "Bad Request",
+                    "details": str(e),
+                }
+            }
+            return Response(response)
+
 
 # class LocationAPIView(APIView):

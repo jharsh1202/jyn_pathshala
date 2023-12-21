@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import UserProfile, Bhaag, Student, Mentor, Parent, Volunteer, Session, Attendance, BhaagCategory, BhaagClass, Location, BhaagClassSection, Group
+from .models import UserProfile, Bhaag, Student, Mentor, Parent, Volunteer, Session, Attendance, BhaagCategory, BhaagClass, \
+    Location, BhaagClassSection, Group, VideoBhaag
 
 
 class BhaagClassSectionFilter(admin.SimpleListFilter):
@@ -44,3 +45,4 @@ admin.site.register(BhaagClassSection)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(UserProfile)
 admin.site.register(Bhaag)
+admin.site.register(VideoBhaag)
