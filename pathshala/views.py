@@ -391,6 +391,9 @@ class StudentsAPIView(APIView):
         try:
             from .models import BhaagClass, BhaagCategory, Bhaag, Location, BhaagClassSection
             if bhaag_class_section_id:=request.GET.get('bhaag_class_section_id'):
+                bhaag_class_section=BhaagClassSection.objects.get(id=bhaag_class_section_id)
+            from .models import BhaagClass, BhaagCategory, Bhaag, Location, BhaagClassSection
+            if bhaag_class_section_id:=request.GET.get('bhaag_class_section_id'):
         from .models import BhaagClass, BhaagCategory, Bhaag, Location, BhaagClassSection
         if bhaag_class_section_id:=request.GET.get('bhaag_class_section_id'):
             bhaag_class_section=BhaagClassSection.objects.get(id=bhaag_class_section_id)
@@ -403,6 +406,7 @@ class StudentsAPIView(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
 
+            students=Student.objects.filter(bhaag_class_section=bhaag_class_section)
             serializer = MentorStudentSerializer(students, many=True)
             response={
                 "status": "success",
