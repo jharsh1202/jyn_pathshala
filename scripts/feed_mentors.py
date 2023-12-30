@@ -59,7 +59,9 @@ try:
             city=row['city']
             address=row['address']
             doj=row['doj']
-            user_name=(first_name+"_"+dob).lower().replace("-", "_")
+            yoj=str(datetime.strptime(doj, "%Y-%m-%d").year)
+            yob=str(datetime.strptime(dob, "%Y-%m-%d").year)
+            user_name=(first_name+yoj+yob).upper()
             print(user_name)
             user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com')
             user.set_password('Raipur@123')

@@ -11,12 +11,21 @@ try:
     for name in ['Student', 'Mentor', 'Admin', 'Volunteer', 'Member', 'Parent', 'Swadhyay']:
         group, created = Group.objects.get_or_create(name=name)
     
+    #ADMIN USER
+    user=User.objects.create(username='admin', email='admin'+'@jynpathshala.com')
+    user.is_superuser = True
+    user.is_staff = True
+    user.set_password('admin')
+    user.save()
+
     # BASE DATA :) # !!IMPORTANT
     first_name="Preeti"
     last_name="Jain"
-    dob='1983-01-03'
-    user_name=(first_name+"_"+dob).lower().replace("-", "_")
-    user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com')
+    dob='1983-03-01' 
+    year_of_birth='1983'
+    year_of_joining='2012'
+    user_name=(first_name+year_of_joining+year_of_birth).upper() #.lower()#.replace("-", "")
+    user=User.objects.create(username=user_name, email=user_name+'@jynpathshala.com')
     user.set_password('Raipur@123')
     user.save()
     user_profile=UserProfile(

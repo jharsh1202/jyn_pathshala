@@ -88,32 +88,81 @@ class LoginAPIView(TokenObtainPairView):
 
 class RefreshAPIView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        
-        # Customize the response data as needed
-        if response.status_code == status.HTTP_200_OK:
+        try:
+            response = super().post(request, *args, **kwargs)
+            
+            # Customize the response data as needed
+            if response.status_code == status.HTTP_200_OK:
+                response={
+                    "status": "success",
+                    "message": "refresh successful",
+                    "data": {'access_token': response.data.get('access'), 'refresh_token': response.data.get('refresh')},
+                }
+                return Response(response)
+            else:
+                response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Bad Request",
+                        "details": "Refresh Token Failed"
+                    }
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
             response={
-                "status": "success",
-                "message": "refresh successful",
-                "data": {'access_token': response.data.get('access'), 'refresh_token': response.data.get('refresh')},
-            }
-            return Response(response)
-        
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Refresh Token Failed",
+                        "details": f"{e}"
+                    }
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
 
 class TokenVerifyAPIView(TokenVerifyView):
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        
-        # Customize the response data as needed
-        if response.status_code == status.HTTP_200_OK:
+        try:
+            response = super().post(request, *args, **kwargs)
+            
+            if response.status_code == status.HTTP_200_OK:
+                response={
+                    "status": "success",
+                    "message": "verification successful",
+                    "data": {}
+                }
+                return Response(response)
+            else:
+                response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Bad Request",
+                        "details": "Verify Token Failed"
+                    }
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
             response={
-                "status": "success",
-                "message": "verification successful",
-                "data": {}
+                "status": "error",
+                "message": "",
+                "data": {},
+                "error": {
+                    "code": "400",
+                    "message": "Bad Request",
+                    "details": f"Verify Token Failed, {e}"
+                }
             }
-        return Response(response)
-
-
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        
 # class LoginAPIView(APIView):
 
 
@@ -165,16 +214,45 @@ class ProfileAPIView(APIView):
     
 
     def patch(self, request, format=None):
-        from .models import UserProfile
-        request_data=request.data
-        if user_profile_id:=int(request_data.get("user_profile_id")):
-            serializer = UserSerializer(UserProfile.objects.get(id=user_profile_id).user, data=request_data, partial=True)
-        else:
-            serializer = UserSerializer(request.user, data=request_data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            from .models import UserProfile
+            request_data=request.data
+            if user_profile_id:=int(request_data.get("user_profile_id")):
+                serializer = UserSerializer(UserProfile.objects.get(id=user_profile_id).user, data=request_data, partial=True)
+            else:
+                serializer = UserSerializer(request.user, data=request_data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                response={
+                    "status": "success",
+                    "message": "profile updated successful",
+                    "data": serializer.data
+                }
+                return Response(response, status=status.HTTP_200_OK)
+            else:
+                response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Bad Request",
+                        "details": serializer.errors
+                    }
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "400",
+                        "message": "Bad Request",
+                        "details": e
+                    }
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BhaagListView(APIView):
@@ -241,29 +319,41 @@ class SessionAPIView(APIView):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, *args, **kwargs):
-        from .models import Session
-        session=Session.objects.get(id=request.data.get('session_id'))
-        print(request.data)
-        session_serializer=SessionSerializer(session, data=request.data, partial=True)
-        if session_serializer.is_valid():
-            session_serializer.save()
-            response={
-                "status": "success",
-                "message": "Session update successful",
-                "data": ""
-            }
-            return Response(response)
-        else:
-            response={
-                    "status": "error",
-                    "message": "",
-                    "data": {},
-                    "error": {
-                        "code": "400",
-                        "message": "Unexpected Error",
-                        "details": f"{session_serializer.errors}"
-                    }
+        try:
+            from .models import Session
+            session=Session.objects.get(id=request.data.get('session_id'))
+            session_serializer=SessionSerializer(session, data=request.data, partial=True)
+            if session_serializer.is_valid():
+                session_serializer.save()
+                response={
+                    "status": "success",
+                    "message": "Session update successful",
+                    "data": ""
                 }
+                return Response(response)
+            else:
+                response={
+                        "status": "error",
+                        "message": "",
+                        "data": {},
+                        "error": {
+                            "code": "400",
+                            "message": "Unexpected Error",
+                            "details": f"{session_serializer.errors}"
+                        }
+                    }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response={
+                        "status": "error",
+                        "message": "",
+                        "data": {},
+                        "error": {
+                            "code": "400",
+                            "message": "Unexpected Error",
+                            "details": f"{e}"
+                        }
+                    }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -298,6 +388,9 @@ class StudentsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        try:
+            from .models import BhaagClass, BhaagCategory, Bhaag, Location, BhaagClassSection
+            if bhaag_class_section_id:=request.GET.get('bhaag_class_section_id'):
         from .models import BhaagClass, BhaagCategory, Bhaag, Location, BhaagClassSection
         if bhaag_class_section_id:=request.GET.get('bhaag_class_section_id'):
             bhaag_class_section=BhaagClassSection.objects.get(id=bhaag_class_section_id)
@@ -310,6 +403,25 @@ class StudentsAPIView(APIView):
         }
         return Response(response, status=status.HTTP_200_OK)
 
+            serializer = MentorStudentSerializer(students, many=True)
+            response={
+                "status": "success",
+                "message": "students fetch successful",
+                "data": serializer.data,
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            response={
+                "status": "error",
+                "message": "",
+                "data": {},
+                "error": {
+                    "code": "400",
+                    "message": "Bad Request",
+                    "details": "bhaag_class_section_id",
+                }
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 class AttendanceAPIView(APIView):
     permission_classes = [IsAuthenticated]

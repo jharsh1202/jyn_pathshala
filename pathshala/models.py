@@ -151,9 +151,9 @@ class BhaagClassSection(HistoryStatusAbstractModel):
     team = models.ManyToManyField("Mentor", related_name="team")
 
     def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
         if self.primary_owner not in self.team.all():
             self.team.add(self.primary_owner)
-        super().save(*args, **kwargs)
 
     def clean(self):
         super().clean()
@@ -237,7 +237,7 @@ class Attendance(HistoryStatusAbstractModel):
 
 
 class VideoBhaag(HistoryStatusAbstractModel):
-    bhaag = models.ManyToManyField(Bhaag, related_name='bhaag')
+    bhaag = models.ManyToManyField(Bhaag, related_name='video_bhaag')
     title = models.CharField(max_length=100, unique=True)
     url = models.URLField(unique=True)
     category = models.CharField(choices=[

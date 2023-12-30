@@ -60,11 +60,27 @@ try:
             doj=convert_date_format(row['Joining month'])
 
             doj = '2023-01-01' if not doj else doj #TODO IMPORTANT!!
-            user_name = (student_name.split()[0].lower()+"_"+doj+"_"+dob+str(random.randint(100, 999))).replace(" ", "").replace("-", "_")
+            yoj=str(datetime.strptime(doj, "%Y-%m-%d").year)
+            yob=str(datetime.strptime(dob, "%Y-%m-%d").year)
+            user_name=(student_name.split()[0]+yoj+yob).upper()
+            # user_name = (student_name.split()[0].lower()+"_"+doj+"_"+dob+str(random.randint(100, 999))).replace(" ", "").replace("-", "_")
             print(user_name, student_name, bhag_name, class_mode, dob, mobile, city, address, doj)
-            user=User.objects.create(username=user_name,email=user_name+'@jynpathshala.com')
-            user.password='Raipur@123'
+            
+            counter = 0
+            while True:
+                try:
+                    user_name = (student_name.split()[0]+str(counter)+yoj+yob).upper() if counter else (student_name.split()[0]+yoj+yob).upper()
+                    print('new', user_name)
+                    user=User.objects.get(username=user_name)
+                    print('found', user)
+                    counter += 1
+                except User.DoesNotExist as e:
+                    break  # Break the loop if user creation is successful
+            
+            user = User.objects.create(username=user_name, email=f"{user_name}@jynpathshala.com")
+            user.set_password('Raipur@123')
             user.save()
+
             user_profile=UserProfile(
                 user=user, 
                 first_name=student_name.split()[0], 
