@@ -279,8 +279,8 @@ class SessionAPIView(APIView):
             from .models import Session
             
             if session_date:=request.GET.get('date'):
-                session_objects_online = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="online", is_active=True)
-                session_objects_offline = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="offline", is_active=True)
+                session_objects_online = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="online")
+                session_objects_offline = Session.objects.filter(date=session_date, bhaag_class_section__bhaag_class__bhaag_category__category="offline")
             else:
                 response={
                     "status": "error",
