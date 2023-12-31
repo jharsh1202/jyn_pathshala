@@ -44,7 +44,10 @@ admin.site.register(Attendance)
 admin.site.register(BhaagClass)
 admin.site.register(BhaagCategory)
 admin.site.register(Location)
-admin.site.register(BhaagClassSection)
+class BhaagClassSectionAdmin(admin.ModelAdmin):
+    list_filter = ('bhaag_class__bhaag_category__category', )
+
+admin.site.register(BhaagClassSection, BhaagClassSectionAdmin)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(UserProfile)
 admin.site.register(Bhaag)
