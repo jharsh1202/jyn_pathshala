@@ -36,7 +36,10 @@ class StudentAdmin(admin.ModelAdmin):
 admin.site.register(Mentor)
 admin.site.register(Parent)
 admin.site.register(Volunteer)
-admin.site.register(Session)
+class SessionAdmin(admin.ModelAdmin):
+    list_filter = ('date', 'bhaag_class_section__bhaag_class__bhaag_category__category')
+
+admin.site.register(Session, SessionAdmin)
 admin.site.register(Attendance)
 admin.site.register(BhaagClass)
 admin.site.register(BhaagCategory)

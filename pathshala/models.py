@@ -218,7 +218,7 @@ class Session(HistoryStatusAbstractModel):
     day_mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE, related_name='day_mentor')
 
     def __str__(self):
-        return f"{self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.date} {self.day_mentor}"
+        return f"{self.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.bhaag_class_section.bhaag_class.bhaag_category.category} {self.date} {self.day_mentor}"
 
     class Meta:
         unique_together = ["date", "bhaag_class_section"]
