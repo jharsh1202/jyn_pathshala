@@ -4,12 +4,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer, VideoBhaagSerializer
+from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer, VideoBhaagSerializer, AttendanceSerializer
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action 
 from django.contrib.auth import authenticate
-from .models import Student, Mentor, Parent, Volunteer, VideoBhaag
+from .models import Student, Mentor, Parent, Volunteer, VideoBhaag, Attendance, Session, Bhaag
+from datetime import date
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -47,6 +48,30 @@ class RegistrationAPIView(APIView):
                 }
             }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        try:
+            user=User.objects.get(username=request.GET.get('username'))
+            user.is_active=False
+            user.save()
+            response={
+                "status": "success",
+                "message": "Delete successful",
+                "data": ""
+            }
+            return Response(response)
+        except Exception as e:
+            response={
+                    "status": "error",
+                    "message": "",
+                    "data": {},
+                    "error": {
+                        "code": "401",
+                        "message": "account delete failed",
+                        "details": "Please Try again."
+                    }
+                }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class LoginAPIView(TokenObtainPairView):
@@ -594,5 +619,159 @@ class VideoLibraryAPIView(APIView):
             }
             return Response(response)
 
+
+
+class AttendanceReportAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            # Retrieve student ID from the request
+            student_id = request.GET.get('student_id')
+            bhaag_id = int(request.GET.get('bhaag_id')) if request.GET.get('bhaag_id') else None
+            bhaag_class_section_id = request.GET.get('bhaag_class_section_id')
+
+            attendance_report = {}
+            # Get student's attendance reports
+            if student_id:
+                student = Student.objects.get(id=student_id)
+                student_attendance = Attendance.objects.filter(student=student)
+
+                # Calculate student's attendance percentage and count YTD, MTD
+                student_attendance_ytd = student_attendance.filter(
+                    session__date__gte=date.today().replace(month=1, day=1),
+                    session__date__lte=date.today()
+                ).count()
+                student_attendance_mtd = student_attendance.filter(
+                    session__date__gte=date.today().replace(day=1),
+                    session__date__lte=date.today()
+                ).count()
+
+                student_attendance_percentage_ytd = (
+                    student_attendance_ytd / total_sessions_ytd
+                ) * 100 if total_sessions_ytd > 0 else 0
+
+                student_attendance_percentage_mtd = (
+                    student_attendance_mtd / total_sessions_mtd
+                ) * 100 if total_sessions_mtd > 0 else 0
+
+                student_report = {
+                    'attendance_percentage_ytd': student_attendance_percentage_ytd,
+                    'attendance_count_ytd': student_attendance_ytd,
+                    'attendance_percentage_mtd': student_attendance_percentage_mtd,
+                    'attendance_count_mtd': student_attendance_mtd,
+                }
+                attendance_report.update(student_report)
+
+            
+            total_sessions_ytd = Session.objects.filter(
+                date__gte=date.today().replace(month=1, day=1),
+                date__lte=date.today()
+            ).count()
+            total_sessions_mtd = Session.objects.filter(
+                date__gte=date.today().replace(day=1),
+                date__lte=date.today()
+            ).count()
+
+            
+            if bhaag_class_section_id:
+                # Calculate overall attendance for BhaagClassSection YTD, MTD
+                bhaag_class_section_attendance_ytd = Attendance.objects.filter(
+                    session__date__gte=date.today().replace(month=1, day=1),
+                    session__date__lte=date.today(),
+                    session__bhaag_class_section=bhaag_class_section_id
+                ).count()
+
+                bhaag_class_section_attendance_mtd = Attendance.objects.filter(
+                    session__date__gte=date.today().replace(day=1),
+                    session__date__lte=date.today(),
+                    session__bhaag_class_section=bhaag_class_section_id
+                ).count()
+
+                            
+                bhaag_class_section_report = {
+                    'bhaag_class_section_attendance_percentage_ytd': (
+                        bhaag_class_section_attendance_ytd / total_sessions_ytd
+                    ) * 100 if total_sessions_ytd > 0 else 0,
+                    'bhaag_class_section_attendance_count_ytd': bhaag_class_section_attendance_ytd,
+                    'bhaag_class_section_attendance_percentage_mtd': (
+                        bhaag_class_section_attendance_mtd / total_sessions_mtd
+                    ) * 100 if total_sessions_mtd > 0 else 0,
+                    'bhaag_class_section_attendance_count_mtd': bhaag_class_section_attendance_mtd,
+                }
+                attendance_report.update(bhaag_class_section_report)
+
+
+            if bhaag_id:
+                # Calculate overall attendance for BhaagClassSection YTD, MTD
+                bhaag_attendance_ytd = Attendance.objects.filter(
+                    session__date__gte=date.today().replace(month=1, day=1),
+                    session__date__lte=date.today(),
+                    session__bhaag_class_section__bhaag_class__bhaag_category__bhaag_id=bhaag_id
+                ).count()
+
+                bhaag_attendance_mtd = Attendance.objects.filter(
+                    session__date__gte=date.today().replace(day=1),
+                    session__date__lte=date.today(),
+                    session__bhaag_class_section__bhaag_class__bhaag_category__bhaag_id=bhaag_id
+                ).count()
+
+                bhaag_report = {
+                    'bhaag_attendance_percentage_ytd': (
+                        bhaag_attendance_ytd / total_sessions_ytd
+                    ) * 100 if total_sessions_ytd > 0 else 0,
+                    'bhaag_attendance_count_ytd': bhaag_attendance_ytd,
+                    'bhaag_attendance_percentage_mtd': (
+                        bhaag_attendance_mtd / total_sessions_mtd
+                    ) * 100 if total_sessions_mtd > 0 else 0,
+                    'bhaag_attendance_count_mtd': bhaag_attendance_mtd,
+                }
+                attendance_report.update(bhaag_report)
+            elif bhaag_id==0:
+                for bhaag in Bhaag.objects.all():
+                    bhaag_id = bhaag
+                    bhaag_attendance_ytd = Attendance.objects.filter(
+                        session__date__gte=date.today().replace(month=1, day=1),
+                        session__date__lte=date.today(),
+                        session__bhaag_class_section__bhaag_class__bhaag_category__bhaag_id=bhaag_id
+                    ).count()
+
+                    bhaag_attendance_mtd = Attendance.objects.filter(
+                        session__date__gte=date.today().replace(day=1),
+                        session__date__lte=date.today(),
+                        session__bhaag_class_section__bhaag_class__bhaag_category__bhaag_id=bhaag_id
+                    ).count()
+
+                    bhaag_report = {
+                        'bhaag_attendance_percentage_ytd': (
+                            bhaag_attendance_ytd / total_sessions_ytd
+                        ) * 100 if total_sessions_ytd > 0 else 0,
+                        'bhaag_attendance_count_ytd': bhaag_attendance_ytd,
+                        'bhaag_attendance_percentage_mtd': (
+                            bhaag_attendance_mtd / total_sessions_mtd
+                        ) * 100 if total_sessions_mtd > 0 else 0,
+                        'bhaag_attendance_count_mtd': bhaag_attendance_mtd,
+                    }
+                    attendance_report.update({bhaag.name:bhaag_report})
+
+            response={
+                "status": "success",
+                "message": "attendance reports generated successfully",
+                "data": attendance_report,
+            }
+            return Response(response)
+        except Exception as e:
+            response={
+                "status": "error",
+                "message": "",
+                "data": {},
+                "error": {
+                    "code": "500",
+                    "message": "Unexpected Error",
+                    "details": f"{e}",
+                }
+            }
+            return Response(response)
+        
+
+# class AttendanceReportAPIView(APIView):
 
 # class LocationAPIView(APIView):

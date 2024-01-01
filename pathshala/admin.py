@@ -40,7 +40,11 @@ class SessionAdmin(admin.ModelAdmin):
     list_filter = ('date', 'bhaag_class_section__bhaag_class__bhaag_category__category')
 
 admin.site.register(Session, SessionAdmin)
-admin.site.register(Attendance)
+
+class AttendanceAdmin(admin.ModelAdmin):
+    list_filter = ('session__bhaag_class_section__bhaag_class__bhaag_category__bhaag', 'session__date')
+
+admin.site.register(Attendance, AttendanceAdmin)
 admin.site.register(BhaagClass)
 admin.site.register(BhaagCategory)
 admin.site.register(Location)
