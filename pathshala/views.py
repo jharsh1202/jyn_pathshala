@@ -942,7 +942,7 @@ class ResourceBhaagAutocompleteView(APIView):
             results = self.get_autocomplete_results(query_param)
             response={
                 "status": "success",
-                "message": "attendance reports generated successfully",
+                "message": "resources fetched successfully",
                 "data": results,
             }
             return Response(response, status=status.HTTP_200_OK)
