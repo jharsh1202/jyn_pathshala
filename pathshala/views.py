@@ -643,35 +643,6 @@ class AttendanceReportAPIView(APIView):
             ).values('date').annotate(count=Count('date')).count() #.count() #TODO COUNT SHOULD BE OF SESSION OF SPECIFIC BHAAG 
 
 
-            if student_id: #STUDENT's OWN ATTENDANCE
-                student = Student.objects.get(id=student_id)
-                student_attendance = Attendance.objects.filter(student=student)
-
-                # Calculate student's attendance percentage and count YTD, MTD
-                student_attendance_ytd = student_attendance.filter(
-                    session__date__gte=date.today().replace(month=1, day=1),
-                    session__date__lte=date.today()
-                ).count()
-                student_attendance_mtd = student_attendance.filter(
-                    session__date__gte=date.today().replace(day=1),
-                    session__date__lte=date.today()
-                ).count()
-
-                student_attendance_percentage_ytd = (
-                    student_attendance_ytd / total_sessions_ytd
-                ) * 100 if total_sessions_ytd > 0 else 0
-
-                student_attendance_percentage_mtd = (
-                    student_attendance_mtd / total_sessions_mtd
-                ) * 100 if total_sessions_mtd > 0 else 0
-
-                student_report = {
-                    'attendance_percentage_ytd': student_attendance_percentage_ytd,
-                    'attendance_count_ytd': student_attendance_ytd,
-                    'attendance_percentage_mtd': student_attendance_percentage_mtd,
-                    'attendance_count_mtd': student_attendance_mtd,
-                }
-                attendance_report.update(student_report)
 
             if bhaag_class_section_id: #OVERALL CLASS ATTENDANCE, (for Mentor/Bhag Owners) 
                 # Calculate overall attendance for BhaagClassSection YTD, MTD
@@ -811,6 +782,36 @@ class AttendanceReportAPIView(APIView):
                         'bhaag_attendance_count_mtd': bhaag_attendance_mtd,
                     }
                     attendance_report.update({bhaag.name:bhaag_report})
+
+            if student_id: #STUDENT's OWN ATTENDANCE
+                student = Student.objects.get(id=student_id)
+                student_attendance = Attendance.objects.filter(student=student)
+
+                # Calculate student's attendance percentage and count YTD, MTD
+                student_attendance_ytd = student_attendance.filter(
+                    session__date__gte=date.today().replace(month=1, day=1),
+                    session__date__lte=date.today()
+                ).count()
+                student_attendance_mtd = student_attendance.filter(
+                    session__date__gte=date.today().replace(day=1),
+                    session__date__lte=date.today()
+                ).count()
+
+                student_attendance_percentage_ytd = (
+                    student_attendance_ytd / total_sessions_ytd
+                ) * 100 if total_sessions_ytd > 0 else 0
+
+                student_attendance_percentage_mtd = (
+                    student_attendance_mtd / total_sessions_mtd
+                ) * 100 if total_sessions_mtd > 0 else 0
+
+                student_report = {
+                    'attendance_percentage_ytd': student_attendance_percentage_ytd,
+                    'attendance_count_ytd': student_attendance_ytd,
+                    'attendance_percentage_mtd': student_attendance_percentage_mtd,
+                    'attendance_count_mtd': student_attendance_mtd,
+                }
+                attendance_report.update(student_report)
 
             response={
                 "status": "success",
