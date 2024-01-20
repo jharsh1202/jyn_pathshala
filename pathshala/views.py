@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from datetime import date, timedelta
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer, VideoBhaagSerializer, AttendanceSerializer
@@ -663,36 +664,65 @@ class AttendanceReportAPIView(APIView):
                 if student_id==0 and (month or year):
                     if not year: year=date.today().year
                     if not month: year=date.today().month
-                    end_year=year+1 if month==12 else year
-                    end_month=1 if month==12 else month+1
-                    attendance={}
+                    today = date.today()
+                    end_year = year + 1 if month == 12 else year
+                    end_month = 1 if month == 12 else month + 1
+                    start_date = date(year, month, 1)
+                    end_date = date(end_year, end_month, 1) #+ timedelta(days=31)
                     total_sessions_custom = Session.objects.filter(
-                        date__gte=date.today().replace(month=month, day=1, year=year),
-                        date__lt=date.today().replace(month=end_month, day=1, year=end_year)
+                        date__gte=start_date,
+                        date__lt=min(end_date, today)
                     ).values('date').distinct().count()
-
+                    dates = Session.objects.filter(
+                        date__gte=date.today().replace(month=month, day=1, year=year),
+                        date__lt=min(end_date, today)
+                    ).values('date').distinct()
+                    attendance = {}
                     for student in Student.objects.filter(bhaag_class_section_id=bhaag_class_section_id):
-                        
-                        student_attendance = Attendance.objects.filter(student=student)
-
-                        # Calculate student's attendance percentage and count YTD, MTD
-                        student_attendance_custom = student_attendance.filter(
-                            session__date__gte=date.today().replace(month=month, day=1, year=year),
-                            session__date__lt=date.today().replace(month=end_month, day=1, year=end_year)
-                        ).count()
-
-                        student_attendance_percentage_custom = (
-                            student_attendance_custom / total_sessions_custom
-                        ) * 100 if total_sessions_custom > 0 else 0
-
+                        student_attendance = Attendance.objects.filter(student=student, session__date__gte=start_date, session__date__lt=end_date)
+                        student_attendance_custom = student_attendance.count()
+                        student_attendance_percentage_custom = (student_attendance_custom / total_sessions_custom) * 100 if total_sessions_custom > 0 else 0
                         student_report = {
                             'attendance_percentage_custom': student_attendance_percentage_custom,
                             'attendance_count_custom': student_attendance_custom,
                         }
-                        attendance.update({student.profile.first_name:student_report})
-                    attendance_report.update({'attendance':attendance})
-                    attendance_report.update({'sessions_total_count_custom':total_sessions_custom})
-                    attendance_report.update({'bhaag':bhaag_class_section_id})
+                        attendance.update({student.profile.first_name: student_report})
+                    attendance_report['attendance']=attendance
+                    attendance_report['sessions_total_count_custom']=total_sessions_custom
+                    attendance_report['bhaag_class_section_id']=bhaag_class_section_id
+
+                    # if not year: year=date.today().year
+                    # if not month: year=date.today().month
+                    # end_year=year+1 if month==12 else year
+                    # end_month=1 if month==12 else month+1
+                    # attendance={}
+                    # total_sessions_custom = Session.objects.filter(
+                    #     date__gte=date.today().replace(month=month, day=1, year=year),
+                    #     date__lt=date.today().replace(month=end_month, day=1, year=end_year)
+                    # ).values('date').distinct().count()
+
+                    # for student in Student.objects.filter(bhaag_class_section_id=bhaag_class_section_id):
+                        
+                    #     student_attendance = Attendance.objects.filter(student=student)
+
+                    #     # Calculate student's attendance percentage and count YTD, MTD
+                    #     student_attendance_custom = student_attendance.filter(
+                    #         session__date__gte=date.today().replace(month=month, day=1, year=year),
+                    #         session__date__lt=date.today().replace(month=end_month, day=1, year=end_year)
+                    #     ).count()
+
+                    #     student_attendance_percentage_custom = (
+                    #         student_attendance_custom / total_sessions_custom
+                    #     ) * 100 if total_sessions_custom > 0 else 0
+
+                    #     student_report = {
+                    #         'attendance_percentage_custom': student_attendance_percentage_custom,
+                    #         'attendance_count_custom': student_attendance_custom,
+                    #     }
+                    #     attendance.update({student.profile.first_name:student_report})
+                    # attendance_report.update({'attendance':attendance})
+                    # attendance_report.update({'sessions_total_count_custom':total_sessions_custom})
+                    # attendance_report.update({'bhaag':bhaag_class_section_id})
                 elif student_id==0:
                     for student in Student.objects.filter(bhaag_class_section_id=bhaag_class_section_id):
                         student_attendance = Attendance.objects.filter(student_id=student)
