@@ -661,23 +661,25 @@ class AttendanceReportAPIView(APIView):
                 ).count()
 
                 if student_id==0 and (month or year):
+                    if not year: year=date.today().year
+                    if not month: year=date.today().month
+                    end_year=year+1 if month==12 else year
+                    end_month=1 if month==12 else month+1
+                    attendance={}
+                    total_sessions_custom = Session.objects.filter(
+                        date__gte=date.today().replace(month=month, day=1, year=year),
+                        date__lt=date.today().replace(month=end_month, day=1, year=end_year)
+                    ).values('date').distinct().count()
+
                     for student in Student.objects.filter(bhaag_class_section_id=bhaag_class_section_id):
-                        if not year: year=date.today().year
-                        if not month: year=date.today().month
+                        
                         student_attendance = Attendance.objects.filter(student=student)
 
                         # Calculate student's attendance percentage and count YTD, MTD
-                        end_year=year+1 if month==12 else year
-                        end_month=1 if month==12 else month+1
                         student_attendance_custom = student_attendance.filter(
                             session__date__gte=date.today().replace(month=month, day=1, year=year),
                             session__date__lt=date.today().replace(month=end_month, day=1, year=end_year)
                         ).count()
-
-                        total_sessions_custom = Session.objects.filter(
-                            date__gte=date.today().replace(month=month, day=1, year=year),
-                            date__lt=date.today().replace(month=end_month, day=1, year=end_year)
-                        ).values('date').distinct().count()
 
                         student_attendance_percentage_custom = (
                             student_attendance_custom / total_sessions_custom
@@ -687,9 +689,10 @@ class AttendanceReportAPIView(APIView):
                             'attendance_percentage_custom': student_attendance_percentage_custom,
                             'attendance_count_custom': student_attendance_custom,
                         }
-                        attendance_report.update({student.profile.first_name:student_report})
-                        attendance_report.update({'sessions_total_count_custom':total_sessions_custom})
-                        attendance_report.update({' bhaag':bhaag_class_section_id})
+                        attendance.update({student.profile.first_name:student_report})
+                    attendance_report.update({'attendance':attendance})
+                    attendance_report.update({'sessions_total_count_custom':total_sessions_custom})
+                    attendance_report.update({'bhaag':bhaag_class_section_id})
                 elif student_id==0:
                     for student in Student.objects.filter(bhaag_class_section_id=bhaag_class_section_id):
                         student_attendance = Attendance.objects.filter(student_id=student)
