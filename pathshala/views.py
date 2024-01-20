@@ -629,6 +629,8 @@ class AttendanceReportAPIView(APIView):
             student_id = int(request.GET.get('student_id')) if request.GET.get('student_id') else None
             bhaag_id = int(request.GET.get('bhaag_id')) if request.GET.get('bhaag_id') else None
             bhaag_class_section_id = int(request.GET.get('bhaag_class_section_id')) if request.GET.get('bhaag_class_section_id') else None
+            month = int(request.GET.get('month')) if request.GET.get('month') else None
+            year = int(request.GET.get('year')) if request.GET.get('year') else None
 
             attendance_report = {}
             # Get student's attendance reports
@@ -783,7 +785,37 @@ class AttendanceReportAPIView(APIView):
                     }
                     attendance_report.update({bhaag.name:bhaag_report})
 
-            if student_id: #STUDENT's OWN ATTENDANCE
+
+            if student_id and (month or year):
+                if not year: year=date.today().year
+                if not month: year=date.today().month
+                student = Student.objects.get(id=student_id)
+                student_attendance = Attendance.objects.filter(student=student)
+
+                # Calculate student's attendance percentage and count YTD, MTD
+                end_year=year+1 if month==12 else year
+                end_month=1 if month==12 else month
+                student_attendance_custom = student_attendance.filter(
+                    session__date__gte=date.today().replace(month=month, day=1, year=year),
+                    session__date__lt=date.today().replace(month=end_month, day=1, year=end_year)
+                ).count()
+
+                total_sessions_custom = Session.objects.filter(
+                    session__date__gte=date.today().replace(month=month, day=1, year=year),
+                    session__date__lt=date.today().replace(month=end_month, day=1, year=end_year)
+            ).values('date').annotate(count=Count('date')).count()
+
+                student_attendance_percentage_custom = (
+                    student_attendance_custom / total_sessions_custom
+                ) * 100 if total_sessions_ytd > 0 else 0
+
+                student_report = {
+                    'attendance_percentage_custom': student_attendance_percentage_custom,
+                    'attendance_count_custom': student_attendance_custom,
+                }
+                attendance_report.update(student_report)
+
+            elif student_id: #STUDENT's OWN ATTENDANCE
                 student = Student.objects.get(id=student_id)
                 student_attendance = Attendance.objects.filter(student=student)
 
