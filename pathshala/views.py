@@ -18,6 +18,7 @@ from rest_framework_simplejwt.views import (
 )
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
+from django.db.models import Count
 
 
 class VideoLibraryPagination(PageNumberPagination):
@@ -635,11 +636,11 @@ class AttendanceReportAPIView(APIView):
             total_sessions_ytd = Session.objects.filter(
                 date__gte=date.today().replace(month=1, day=1),
                 date__lte=date.today()
-            ).count()
+            ).values('date').annotate(count=Count('date')).count() #.count() #TODO COUNT SHOULD BE OF SESSION OF SPECIFIC BHAAG 
             total_sessions_mtd = Session.objects.filter(
                 date__gte=date.today().replace(day=1),
                 date__lte=date.today()
-            ).count()
+            ).values('date').annotate(count=Count('date')).count() #.count() #TODO COUNT SHOULD BE OF SESSION OF SPECIFIC BHAAG 
 
 
             if student_id: #STUDENT's OWN ATTENDANCE
