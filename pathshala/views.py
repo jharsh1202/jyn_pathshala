@@ -841,9 +841,27 @@ class ResourceBhaagAutocompleteView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        query_param = request.query_params.get('query', '')
-        results = self.get_autocomplete_results(query_param)
-        return Response(results, status=status.HTTP_200_OK)
+        try:
+            query_param = request.query_params.get('title', '')
+            results = self.get_autocomplete_results(query_param)
+            response={
+                "status": "success",
+                "message": "attendance reports generated successfully",
+                "data": results,
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            response={
+                "status": "error",
+                "message": "",
+                "data": {},
+                "error": {
+                    "code": "500",
+                    "message": "Unexpected Error",
+                    "details": f"{e}",
+                }
+            }
+            return Response(response)
 
     def get_autocomplete_results(self, query_param):
         queryset = ResourceBhaag.objects.filter(
