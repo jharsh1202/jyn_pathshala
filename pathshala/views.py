@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action 
 from django.contrib.auth import authenticate
-from .models import Student, Mentor, Parent, Volunteer, VideoBhaag, Attendance, Session, Bhaag, BhaagClassSection
+from .models import Student, Mentor, Parent, Volunteer, VideoBhaag, Attendance, Session, Bhaag, BhaagClassSection, ResourceBhaag
 from datetime import date
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -834,3 +834,25 @@ class AttendanceReportAPIView(APIView):
 # class AttendanceReportAPIView(APIView):
 
 # class LocationAPIView(APIView):
+
+
+
+class ResourceBhaagAutocompleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query_param = request.query_params.get('query', '')
+        results = self.get_autocomplete_results(query_param)
+        return Response(results, status=status.HTTP_200_OK)
+
+    def get_autocomplete_results(self, query_param):
+        queryset = ResourceBhaag.objects.filter(
+            Q(title__icontains=query_param)
+        )
+
+        results = [{'id': item.id, 'title': item.title} for item in queryset]
+
+        return results
+
+
+# from rest_framework import generics

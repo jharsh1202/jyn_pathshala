@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import RegistrationAPIView, LoginAPIView, ProfileAPIView, StudentsAPIView, RoleProfileAPIView, \
     BhaagListView, SessionAPIView, AttendanceAPIView, LogoutAPIView, RefreshAPIView, TokenVerifyAPIView, \
-        VideoLibraryAPIView, AttendanceReportAPIView
+        VideoLibraryAPIView, AttendanceReportAPIView, ResourceBhaagAutocompleteView 
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -19,5 +19,6 @@ urlpatterns = [
     path('attendance_report/', AttendanceReportAPIView.as_view(), name='attendance_report'),
     path('students/', StudentsAPIView.as_view(), name='student'),
     # path('role_profile/', RoleProfileAPIView.as_view(), name='role_profile'),
+    path('resources/', ResourceBhaagAutocompleteView.as_view(), name='resource'),
     path('video_library/', VideoLibraryAPIView.as_view(), name='video_library'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

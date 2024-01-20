@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile, Student, BhaagClass, Bhaag, BhaagCategory, Location, Group, Session, Attendance, \
-    BhaagClassSection, Mentor, VideoBhaag
+    BhaagClassSection, Mentor, VideoBhaag, ResourceBhaag
 from django.db import transaction
 
 
@@ -151,3 +151,10 @@ class UserSerializer(serializers.ModelSerializer):
                 profile_serializer.save()
 
         return instance
+
+
+class ResourceBhaagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResourceBhaag
+        fields = ['id', 'title']
+

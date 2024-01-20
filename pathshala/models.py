@@ -249,3 +249,24 @@ class VideoBhaag(HistoryStatusAbstractModel):
 
     def __str__(self):
         return f"{self.title} {self.category} {self.bhaag.name}"
+
+
+class ResourceBhaag(HistoryStatusAbstractModel):
+    bhaag = models.ManyToManyField(Bhaag, related_name='resource_bhaag')
+    title = models.CharField(max_length=100, unique=True)
+    text = models.TextField(null=True) 
+    category = models.CharField(choices=[
+        ("jinvani", "jinvani"),
+        ("kavita", "kavita"),
+        ("bhajan", "bhajan"),
+        ("stuti", "stuti"),
+        ("pooja", "pooja"),
+        ("chalisa", "chalisa"),
+        ("facts", "facts"),
+    ], max_length=100)
+    resource_type = models.CharField(choices=[
+        ("text", "text"),
+    ], max_length=100)
+
+    def __str__(self):
+        return f"{self.title} {self.bhaag.name}"
