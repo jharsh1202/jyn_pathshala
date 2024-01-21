@@ -938,8 +938,8 @@ class ResourceBhaagAutocompleteView(APIView):
 
     def get(self, request):
         try:
-            query_param = request.query_params.get('title', '')
-            results = self.get_autocomplete_results(query_param)
+            id = request.query_params.get('title', '')
+            results = self.get_autocomplete_results(id)
             response={
                 "status": "success",
                 "message": "resources fetched successfully",
