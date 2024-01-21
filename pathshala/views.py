@@ -502,8 +502,8 @@ class AttendanceAPIView(APIView):
             from .models import Session, Attendance
             request_data = request.data
             student_ids=request_data.get('students_ids', [])
-            students=Student.objects.filter(id__in=student_ids)
             session=Session.objects.get(id=request_data.get('session_id'))
+            students=Student.objects.filter(bhaag_class_section=session.bhaag_class_section)
             
             if students.count()!=len(student_ids):
                 response={
@@ -534,7 +534,10 @@ class AttendanceAPIView(APIView):
             try:
                 with transaction.atomic():
                     for student in students:
-                        Attendance.objects.update_or_create(student=student, session=session, status=True)
+                        if student.id in student_ids:
+                            Attendance.objects.update_or_create(student=student, session=session, status=True)
+                        else:
+                            Attendance.objects.update_or_create(student=student, session=session, status=False)
                 response={
                     "status": "success",
                     "message": "attendance marked successfully",
