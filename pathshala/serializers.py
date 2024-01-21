@@ -154,7 +154,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ResourceBhaagSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = ResourceBhaag
         fields = ['id', 'title']
 
+
+class ResourceBhaagTextSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ResourceBhaag
+        fields = ['id', 'title', 'text']
