@@ -76,6 +76,10 @@ class StudentSerializer(serializers.ModelSerializer):
 class MentorStudentSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()
     bhaag_class_section = BhaagClassSectionSerializer()
+    attendance = serializers.SerializerMethodField()
+
+    def get_attendance(self, obj):
+        return Attendance.calculate_bhg_cls_sec_student_attendance(student_id=1)
 
     class Meta:
         model = Student

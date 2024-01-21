@@ -5,7 +5,7 @@ from django.utils import timezone
 from .mixins import RegistrationRoleMixin
 import os
 from django.core.exceptions import ValidationError
-from datetime import time
+from datetime import time, date
 
 
 class CreateUpdateAtAbstractModel(models.Model):
@@ -231,6 +231,55 @@ class Attendance(HistoryStatusAbstractModel):
 
     def __str__(self):
         return f"{self.student.profile.first_name} {self.session.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.status}"
+
+    def calculate_bhg_cls_sec_students_attendance(bhaag_class_section_id, month, year):
+        attendance_report=dict()
+        if not year: year=date.today().year
+        if not month: year=date.today().month
+        today = date.today()
+        end_year = year + 1 if month == 12 else year
+        end_month = 1 if month == 12 else month + 1
+        start_date = date(year, month, 1)
+        end_date = date(end_year, end_month, 1) 
+        
+        total_sessions_custom = Session.objects.filter(
+            date__gte=start_date,
+            date__lt=min(end_date, today)
+        ).values('date').distinct().count()
+        
+        attendance = {}
+        for student in Student.objects.filter(bhaag_class_section_id=bhaag_class_section_id):
+            student_attendance_custom = Attendance.objects.filter(student=student, session__date__gte=start_date, session__date__lt=end_date).count()
+            student_attendance_percentage_custom = (student_attendance_custom / total_sessions_custom) * 100 if total_sessions_custom > 0 else 0
+            student_report = {
+                'attendance_percentage_custom': student_attendance_percentage_custom,
+                'attendance_count_custom': student_attendance_custom,
+            }
+            attendance.update({student.profile.first_name: student_report})
+
+        attendance_report['attendance']=attendance
+        attendance_report['sessions_total_count_custom']=total_sessions_custom
+        attendance_report['bhaag_class_section_id']=bhaag_class_section_id
+        return attendance_report
+    
+    def calculate_bhg_cls_sec_student_attendance(student_id, month=None, year=None):
+        attendance_report=dict()
+        if not year: year=date.today().year
+        if not month: month=date.today().month
+        today = date.today()
+        end_year = year + 1 if month == 12 else year
+        end_month = 1 if month == 12 else month + 1
+        start_date = date(year, month, 1)
+        end_date = date(end_year, end_month, 1)
+        
+        total_sessions_custom = Session.objects.filter(
+            date__gte=start_date,
+            date__lt=min(end_date, today)
+        ).values('date').distinct().count()
+        
+        student_attendance_custom = Attendance.objects.filter(student_id=student_id, session__date__gte=start_date, session__date__lt=end_date).count()
+        student_attendance_percentage_custom = (student_attendance_custom / total_sessions_custom) * 100 if total_sessions_custom > 0 else 0
+        return student_attendance_percentage_custom
 
     class Meta:
         unique_together = ["student", "session", "status"]
