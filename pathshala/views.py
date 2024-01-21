@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from datetime import date, timedelta
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer, VideoBhaagSerializer, AttendanceSerializer
+from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer, VideoBhaagSerializer, AttendanceSerializer, ResourceBhaagSerializer, ResourceBhaagTextSerializer
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action 
@@ -969,4 +969,25 @@ class ResourceBhaagAutocompleteView(APIView):
         return results
 
 
-# from rest_framework import generics
+from rest_framework import generics
+class ResourceBhaagAPIView(generics.ListCreateAPIView):
+    queryset = ResourceBhaag.objects.all()
+    serializer_class = ResourceBhaagTextSerializer
+
+    def get_queryset(self):
+        queryset = ResourceBhaag.objects.all()
+        resource_type = self.request.query_params.get('resource_type', None)
+        category = self.request.query_params.get('category', None)
+        bhaag = self.request.query_params.get('bhaag', None)
+        title = self.request.query_params.get('title', None)
+
+        if resource_type:
+            queryset = queryset.filter(resource_type=resource_type)
+        if category:
+            queryset = queryset.filter(category=category)
+        if bhaag:
+            queryset = queryset.filter(bhaag__name=bhaag)
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+
+        return queryset
