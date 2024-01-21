@@ -969,25 +969,68 @@ class ResourceBhaagAutocompleteView(APIView):
         return results
 
 
-from rest_framework import generics
-class ResourceBhaagAPIView(generics.ListCreateAPIView):
-    queryset = ResourceBhaag.objects.all()
-    serializer_class = ResourceBhaagTextSerializer
+class ResourceBhaagAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        queryset = ResourceBhaag.objects.all()
-        resource_type = self.request.query_params.get('resource_type', None)
-        category = self.request.query_params.get('category', None)
-        bhaag = self.request.query_params.get('bhaag', None)
-        title = self.request.query_params.get('title', None)
+    def get(self, request):
+        try:
+            query_param = request.query_params.get('id', '')
+            # results = self.get_autocomplete_results(query_param)
+            resource=ResourceBhaag.objects.get(id=id)
+            response={
+                "status": "success",
+                "message": "resource fetched successfully",
+                "data": {
+                    "text":resource.text,
+                    "title":resource.title,
+                    "id":resource.id
+                },
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            response={
+                "status": "error",
+                "message": "",
+                "data": {},
+                "error": {
+                    "code": "500",
+                    "message": "Unexpected Error",
+                    "details": f"{e}",
+                }
+            }
+            return Response(response)
 
-        if resource_type:
-            queryset = queryset.filter(resource_type=resource_type)
-        if category:
-            queryset = queryset.filter(category=category)
-        if bhaag:
-            queryset = queryset.filter(bhaag__name=bhaag)
-        if title:
-            queryset = queryset.filter(title__icontains=title)
+    # def get_autocomplete_results(self, query_param):
+    #     queryset = ResourceBhaag.objects.filter(
+    #         Q(title__icontains=query_param)
+    #     )
 
-        return queryset
+    #     results = [{'id': item.id, 'title': item.title} for item in queryset]
+
+    #     return results
+
+# from rest_framework import generics
+# class ResourceBhaagAPIView(generics.ListCreateAPIView):
+#     queryset = ResourceBhaag.objects.all()
+#     serializer_class = ResourceBhaagTextSerializer
+
+#     def get_queryset(self):
+#         queryset = ResourceBhaag.objects.all()
+#         resource_type = self.request.query_params.get('resource_type', None)
+#         category = self.request.query_params.get('category', None)
+#         bhaag = self.request.query_params.get('bhaag', None)
+#         title = self.request.query_params.get('title', None)
+#         id = self.request.query_params.get('id', None)
+
+#         if resource_type:
+#             queryset = queryset.filter(resource_type=resource_type)
+#         if category:
+#             queryset = queryset.filter(category=category)
+#         if bhaag:
+#             queryset = queryset.filter(bhaag__name=bhaag)
+#         if title:
+#             queryset = queryset.filter(title__icontains=title)
+#         if id:
+#             queryset = queryset.get(id=id)
+
+#         return queryset
