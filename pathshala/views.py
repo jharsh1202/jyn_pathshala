@@ -505,18 +505,18 @@ class AttendanceAPIView(APIView):
             session=Session.objects.get(id=request_data.get('session_id'))
             students=Student.objects.filter(bhaag_class_section=session.bhaag_class_section)
             
-            if students.count()!=len(student_ids):
-                response={
-                    "status": "error",
-                    "message": "",
-                    "data": {},
-                    "error": {
-                        "code": "404",
-                        "message": "failed to fetch some students",
-                        "details": f"{students} {session}",
-                    }
-                }
-                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            # if students.count()!=len(student_ids):
+            #     response={
+            #         "status": "error",
+            #         "message": "",
+            #         "data": {},
+            #         "error": {
+            #             "code": "404",
+            #             "message": "failed to fetch some students",
+            #             "details": f"{students} {session}",
+            #         }
+            #     }
+            #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
             
             if not students or not session:
                 response={
@@ -532,12 +532,22 @@ class AttendanceAPIView(APIView):
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
             try:
+                # with transaction.atomic():
+                #     for student in students:
+                #         if student.id in student_ids:
+                #             Attendance.objects.update_or_create(student=student, session=session, status=True)
+                #         else:
+                #             Attendance.objects.filter(student=student, session=session).delete()
                 with transaction.atomic():
-                    for student in students:
-                        if student.id in student_ids:
-                            Attendance.objects.update_or_create(student=student, session=session, status=True)
-                        else:
-                            Attendance.objects.update_or_create(student=student, session=session, status=False)
+                    Attendance.objects.filter(student__in=students, session=session).exclude(student__id__in=student_ids).delete()
+
+                    bulk_update_list = [
+                        Attendance(student=student, session=session, status=True)
+                        for student in students if student.id in student_ids
+                    ]
+
+                    Attendance.objects.bulk_create(bulk_update_list) #, ignore_conflicts=True
+
                 response={
                     "status": "success",
                     "message": "attendance marked successfully",

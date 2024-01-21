@@ -282,7 +282,7 @@ class Attendance(HistoryStatusAbstractModel):
         return student_attendance_percentage_custom
 
     class Meta:
-        unique_together = ["student", "session", "status"]
+        unique_together = ["student", "session"]
 
 
 class VideoBhaag(HistoryStatusAbstractModel):
