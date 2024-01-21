@@ -79,7 +79,7 @@ class MentorStudentSerializer(serializers.ModelSerializer):
     attendance = serializers.SerializerMethodField()
 
     def get_attendance(self, obj):
-        return Attendance.calculate_bhg_cls_sec_student_attendance(student_id=1)
+        return Attendance.calculate_bhg_cls_sec_student_attendance(student_id=obj.id)
 
     class Meta:
         model = Student
