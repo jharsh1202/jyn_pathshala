@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import RegistrationAPIView, LoginAPIView, ProfileAPIView, StudentsAPIView, RoleProfileAPIView, \
     BhaagListView, SessionAPIView, AttendanceAPIView, LogoutAPIView, RefreshAPIView, TokenVerifyAPIView, \
-        VideoLibraryAPIView, AttendanceReportAPIView, ResourceBhaagAutocompleteView 
+        VideoLibraryAPIView, AttendanceReportAPIView, ResourceBhaagAutocompleteView, ResourceBhaagAPIView 
 from django.conf import settings
 from django.conf.urls.static import static
 
