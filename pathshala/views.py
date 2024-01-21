@@ -943,8 +943,7 @@ class ResourceBhaagAPIView(APIView):
 
     def get(self, request):
         try:
-            query_param = request.query_params.get('id', '')
-            # results = self.get_autocomplete_results(query_param)
+            id = request.query_params.get('id', '')
             resource=ResourceBhaag.objects.get(id=id)
             response={
                 "status": "success",
@@ -952,7 +951,7 @@ class ResourceBhaagAPIView(APIView):
                 "data": {
                     "text":resource.text,
                     "title":resource.title,
-                    "id":resource.id
+                    "id":id
                 },
             }
             return Response(response, status=status.HTTP_200_OK)
