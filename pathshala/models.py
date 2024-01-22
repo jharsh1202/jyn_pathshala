@@ -230,7 +230,7 @@ class Attendance(HistoryStatusAbstractModel):
     status = models.BooleanField()
 
     def __str__(self):
-        return f"{self.student.profile.first_name} {self.session.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.status}"
+        return f"{self.student.profile.first_name} {self.session.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.session.date} {self.status}"
 
     def calculate_bhg_cls_sec_students_attendance(bhaag_class_section_id, month, year):
         attendance_report=dict()
@@ -279,7 +279,7 @@ class Attendance(HistoryStatusAbstractModel):
         
         student_attendance_custom = Attendance.objects.filter(student_id=student_id, session__date__gte=start_date, session__date__lt=end_date).count()
         student_attendance_percentage_custom = (student_attendance_custom / total_sessions_custom) * 100 if total_sessions_custom > 0 else 0
-        return student_attendance_percentage_custom
+        return round(student_attendance_percentage_custom, 2)
 
     class Meta:
         unique_together = ["student", "session"]

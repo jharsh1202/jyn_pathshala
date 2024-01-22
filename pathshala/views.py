@@ -532,22 +532,11 @@ class AttendanceAPIView(APIView):
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
             try:
-                # with transaction.atomic():
-                #     for student in students:
-                #         if student.id in student_ids:
-                #             Attendance.objects.update_or_create(student=student, session=session, status=True)
-                #         else:
-                #             Attendance.objects.filter(student=student, session=session).delete()
                 with transaction.atomic():
                     Attendance.objects.filter(student__in=students, session=session).exclude(student__id__in=student_ids).delete()
-
-                    bulk_update_list = [
-                        Attendance(student=student, session=session, status=True)
-                        for student in students if student.id in student_ids
-                    ]
-
-                    Attendance.objects.bulk_create(bulk_update_list) #, ignore_conflicts=True
-
+                    for student in students:
+                        if str(student.id) in student_ids:
+                            Attendance.objects.update_or_create(student=student, session=session, status=True)
                 response={
                     "status": "success",
                     "message": "attendance marked successfully",
