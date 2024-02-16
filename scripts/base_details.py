@@ -33,7 +33,7 @@ try:
         first_name=first_name, 
         last_name=last_name,
         dob=dob,
-        phone='8826996224',
+        phone='9999999999',
         email=user_name+'@jynpathshala.com',
         date_of_joining='2012-01-01'
     )
