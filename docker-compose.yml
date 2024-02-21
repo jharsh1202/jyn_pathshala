@@ -10,7 +10,7 @@ services:
       - "8000:8000"
     depends_on:
       - redis
-      - mysql
+      # - mysql
     networks:
       - backend
 
@@ -31,15 +31,16 @@ services:
     networks:
       - backend
 
-  mysql:
-    image: "mysql:latest"
-    environment:
-      MYSQL_DATABASE: db_jain_youth_noida
-      # MYSQL_USER: root
-      MYSQL_PASSWORD: JainYouthNoida@2012
-      MYSQL_ROOT_PASSWORD: JainYouthNoida@2012
-    networks:
-      - backend
+  # FOR NOW WE ARE USING SQLITE3 ONLY
+  # mysql: 
+  #   image: "mysql:latest"
+  #   environment:
+  #     MYSQL_DATABASE: db_jain_youth_noida
+  #     # MYSQL_USER: root
+  #     MYSQL_PASSWORD: JainYouthNoida@2012
+  #     MYSQL_ROOT_PASSWORD: JainYouthNoida@2012
+  #   networks:
+  #     - backend
 
 networks:
   backend:

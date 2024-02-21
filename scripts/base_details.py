@@ -12,11 +12,14 @@ try:
         group, created = Group.objects.get_or_create(name=name)
     
     #ADMIN USER
-    user=User.objects.create(username='admin', email='admin'+'@jynpathshala.com')
-    user.is_superuser = True
-    user.is_staff = True
-    user.set_password('admin')
-    user.save()
+    try:
+        User.objects.get(username='admin')
+    except Exception as e:
+        user=User.objects.create(username='admin', email='admin'+'@jynpathshala.com')
+        user.is_superuser = True
+        user.is_staff = True
+        user.set_password('admin')
+        user.save()
 
     # BASE DATA :) # !!IMPORTANT
     first_name="Preeti"
