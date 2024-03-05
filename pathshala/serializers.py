@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile, Student, BhaagClass, Bhaag, BhaagCategory, Location, Group, Session, Attendance, \
-    BhaagClassSection, Mentor, VideoBhaag, ResourceBhaag
+        BhaagClassSection, Mentor, VideoBhaag, ResourceBhaag, VideoCategory
 from django.db import transaction
 
 
@@ -86,12 +86,26 @@ class MentorStudentSerializer(serializers.ModelSerializer):
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
+class VideoCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VideoCategory
+        exclude = () #('created_at', 'updated_at', 'created_by', 'updated_by')
+    
+    def to_representation(self, instance):
+        print(instance)
+        return super().to_representation(instance)
+
 class VideoBhaagSerializer(serializers.ModelSerializer):
+    categories = VideoCategorySerializer(many=True)
 
     class Meta:
         model = VideoBhaag
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
+    def to_representation(self, instance): #TODO FIX FROM APP
+        temp_data= super().to_representation(instance)
+        temp_data['categories']=temp_data.get('categories')[0].get('name')
+        return temp_data
 
 class SessionSerializer(serializers.ModelSerializer):    
     day_mentor_id = serializers.IntegerField(write_only=True) #for updating mentor id 

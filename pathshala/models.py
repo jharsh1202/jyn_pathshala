@@ -285,20 +285,21 @@ class Attendance(HistoryStatusAbstractModel):
         unique_together = ["student", "session"]
 
 
+class VideoCategory(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class VideoBhaag(HistoryStatusAbstractModel):
     bhaag = models.ManyToManyField(Bhaag, related_name='video_bhaag')
     title = models.CharField(max_length=100, unique=True)
     url = models.URLField(unique=True)
-    category = models.CharField(choices=[
-        ("festival", "festival"),
-        ("historical", "historical"),
-        ("moral", "moral"),
-        ("story", "story"),
-    ], max_length=100)
+    categories = models.ManyToManyField(VideoCategory, related_name='videos')
 
     def __str__(self):
-        return f"{self.title} {self.category} {self.bhaag.name}"
-
+        return f"{self.title}"
 
 class ResourceBhaag(HistoryStatusAbstractModel):
     bhaag = models.ManyToManyField(Bhaag, related_name='resource_bhaag')

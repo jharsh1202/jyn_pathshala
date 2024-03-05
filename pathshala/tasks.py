@@ -5,6 +5,7 @@ from celery.utils.log import get_task_logger
 from django.core.management import call_command
 from datetime import datetime, timedelta
 from utilities.cloud.azure_utils import AzureBlobStorage
+from django.conf import settings
 
 app = Celery('pathshala')
 logger = get_task_logger(__name__)
@@ -19,9 +20,8 @@ def create_session_records():
         Session.objects.create(date=next_sunday, bhaag_class_section=bhaag_class_section, day_mentor=bhaag_class_section.primary_owner)
 
 @app.task
-def backup_db_to_azure_blob():  
+def backup_db_to_azure_blob():
     current_date = datetime.now().strftime("%Y_%m_%d")
+    file_path = f"{settings.BASE_DIR}/db.sqlite3"
     file_name = f'jyn_pathshala_{current_date}.sqlite3'
-    AzureBlobStorage.upload_file('db.sqlite3', file_name)
-
-
+    AzureBlobStorage().upload_file(file_path, file_name)
