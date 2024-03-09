@@ -111,6 +111,30 @@ class Bhaag(HistoryStatusAbstractModel):
         return f"{self.name}"
 
 
+class Chapter(models.Model):
+    name = models.CharField(max_length=100)
+    class_name = models.ForeignKey(Bhaag, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.name} {self.class_name}"
+
+
+class Topic(models.Model):
+    name = models.CharField(max_length=100)
+    chapter = models.ManyToManyField(Chapter, related_name='chapters')
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class SubTopic(models.Model):
+    name = models.CharField(max_length=100)
+    sub_topic = models.ManyToManyField(Topic, related_name='topic')
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class BhaagCategory(HistoryStatusAbstractModel):
     SESSION_CATEGORIES = [
         ('offline', 'offline'),
@@ -227,7 +251,7 @@ class Session(HistoryStatusAbstractModel):
 class Attendance(HistoryStatusAbstractModel):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='student')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='session')
-    status = models.BooleanField()
+    status = models.BooleanField() #REMOVE THIS
 
     def __str__(self):
         return f"{self.student.profile.first_name} {self.session.bhaag_class_section.bhaag_class.bhaag_category.bhaag.name} {self.session.date} {self.status}"
@@ -301,9 +325,11 @@ class VideoBhaag(HistoryStatusAbstractModel):
     def __str__(self):
         return f"{self.title}"
 
-class ResourceBhaag(HistoryStatusAbstractModel):
-    bhaag = models.ManyToManyField(Bhaag, related_name='resource_bhaag')
+
+class ResourceGeneric(HistoryStatusAbstractModel):
+    # bhaag = models.ManyToManyField(Bhaag, related_name='resource_bhaag')
     title = models.CharField(max_length=100, unique=True)
+    # url = models.URLField(unique=True, null=True) #could be pdf etc
     text = models.TextField(null=True) 
     category = models.CharField(choices=[
         ("jinvani", "jinvani"),
@@ -315,8 +341,12 @@ class ResourceBhaag(HistoryStatusAbstractModel):
         ("facts", "facts"),
     ], max_length=100)
     resource_type = models.CharField(choices=[
+        # ("web", "web"),
         ("text", "text"),
+        # ("audio", "audio"),
+        # ("video", "video"),
     ], max_length=100)
 
     def __str__(self):
-        return f"{self.title} {self.bhaag.name}"
+        return f"{self.title}" #  {self.category} {self.resource_type}
+#         return f"{self.title}" #  {self.category} {self.resource_type}

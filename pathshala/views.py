@@ -5,12 +5,12 @@ from rest_framework.response import Response
 from datetime import date, timedelta
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer, VideoBhaagSerializer, AttendanceSerializer, ResourceBhaagSerializer, ResourceBhaagTextSerializer
+from .serializers import UserSerializer, StudentSerializer, MentorStudentSerializer, BhaagSerializer, SessionSerializer, VideoBhaagSerializer, AttendanceSerializer, ResourceGenericSerializer, ResourceGenericTextSerializer
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action 
 from django.contrib.auth import authenticate
-from .models import Student, Mentor, Parent, Volunteer, VideoBhaag, Attendance, Session, Bhaag, BhaagClassSection, ResourceBhaag
+from .models import Student, Mentor, Parent, Volunteer, VideoBhaag, Attendance, Session, Bhaag, BhaagClassSection, ResourceGeneric
 from datetime import date
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -665,34 +665,6 @@ class AttendanceReportAPIView(APIView):
 
                 if student_id==0 and (month or year):
                     attendance_report=Attendance.calculate_bhg_cls_sec_students_attendance(bhaag_class_section_id, month, year) #//TODO RESPONSE ADJUST AS OTHERS
-                    # if not year: year=date.today().year
-                    # if not month: year=date.today().month
-                    # today = date.today()
-                    # end_year = year + 1 if month == 12 else year
-                    # end_month = 1 if month == 12 else month + 1
-                    # start_date = date(year, month, 1)
-                    # end_date = date(end_year, end_month, 1) #+ timedelta(days=31)
-                    # total_sessions_custom = Session.objects.filter(
-                    #     date__gte=start_date,
-                    #     date__lt=min(end_date, today)
-                    # ).values('date').distinct().count()
-                    # dates = Session.objects.filter(
-                    #     date__gte=date.today().replace(month=month, day=1, year=year),
-                    #     date__lt=min(end_date, today)
-                    # ).values('date').distinct()
-                    # attendance = {}
-                    # for student in Student.objects.filter(bhaag_class_section_id=bhaag_class_section_id):
-                    #     student_attendance = Attendance.objects.filter(student=student, session__date__gte=start_date, session__date__lt=end_date)
-                    #     student_attendance_custom = student_attendance.count()
-                    #     student_attendance_percentage_custom = (student_attendance_custom / total_sessions_custom) * 100 if total_sessions_custom > 0 else 0
-                    #     student_report = {
-                    #         'attendance_percentage_custom': student_attendance_percentage_custom,
-                    #         'attendance_count_custom': student_attendance_custom,
-                    #     }
-                    #     attendance.update({student.profile.first_name: student_report})
-                    # attendance_report['attendance']=attendance
-                    # attendance_report['sessions_total_count_custom']=total_sessions_custom
-                    # attendance_report['bhaag_class_section_id']=bhaag_class_section_id
                 elif student_id==0:
                     for student in Student.objects.filter(bhaag_class_section_id=bhaag_class_section_id):
                         student_attendance = Attendance.objects.filter(student_id=student)
@@ -905,6 +877,9 @@ class AttendanceReportAPIView(APIView):
 
 
 class ResourceBhaagAutocompleteView(APIView):
+
+
+class ResourceGenericAutocompleteView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -931,7 +906,7 @@ class ResourceBhaagAutocompleteView(APIView):
             return Response(response)
 
     def get_autocomplete_results(self, query_param):
-        queryset = ResourceBhaag.objects.filter(
+        queryset = ResourceGeneric.objects.filter(
             Q(title__icontains=query_param)
         )
 
@@ -940,13 +915,13 @@ class ResourceBhaagAutocompleteView(APIView):
         return results
 
 
-class ResourceBhaagAPIView(APIView):
+class ResourceGenericAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
             id = request.query_params.get('id', '')
-            resource=ResourceBhaag.objects.get(id=id)
+            resource=ResourceGeneric.objects.get(id=id)
             response={
                 "status": "success",
                 "message": "resource fetched successfully",
@@ -970,37 +945,3 @@ class ResourceBhaagAPIView(APIView):
             }
             return Response(response)
 
-    # def get_autocomplete_results(self, query_param):
-    #     queryset = ResourceBhaag.objects.filter(
-    #         Q(title__icontains=query_param)
-    #     )
-
-    #     results = [{'id': item.id, 'title': item.title} for item in queryset]
-
-    #     return results
-
-# from rest_framework import generics
-# class ResourceBhaagAPIView(generics.ListCreateAPIView):
-#     queryset = ResourceBhaag.objects.all()
-#     serializer_class = ResourceBhaagTextSerializer
-
-#     def get_queryset(self):
-#         queryset = ResourceBhaag.objects.all()
-#         resource_type = self.request.query_params.get('resource_type', None)
-#         category = self.request.query_params.get('category', None)
-#         bhaag = self.request.query_params.get('bhaag', None)
-#         title = self.request.query_params.get('title', None)
-#         id = self.request.query_params.get('id', None)
-
-#         if resource_type:
-#             queryset = queryset.filter(resource_type=resource_type)
-#         if category:
-#             queryset = queryset.filter(category=category)
-#         if bhaag:
-#             queryset = queryset.filter(bhaag__name=bhaag)
-#         if title:
-#             queryset = queryset.filter(title__icontains=title)
-#         if id:
-#             queryset = queryset.get(id=id)
-
-#         return queryset
