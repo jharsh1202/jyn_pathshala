@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import UserProfile, Bhaag, Student, Mentor, Parent, Volunteer, Session, Attendance, BhaagCategory, BhaagClass, \
-    Location, BhaagClassSection, Group, VideoBhaag, ResourceBhaag, VideoCategory
+    Location, BhaagClassSection, Group, VideoBhaag, ResourceGeneric, VideoCategory, Chapter, Topic, SubTopic
 
 
 class BhaagClassSectionFilter(admin.SimpleListFilter):
@@ -56,5 +56,8 @@ admin.site.register(Student, StudentAdmin)
 admin.site.register(UserProfile)
 admin.site.register(Bhaag)
 admin.site.register(VideoBhaag)
-admin.site.register(ResourceBhaag)
+admin.site.register(ResourceGeneric)
 admin.site.register(VideoCategory)
+admin.site.register(Chapter)
+admin.site.register(Topic)
+admin.site.register(SubTopic)
